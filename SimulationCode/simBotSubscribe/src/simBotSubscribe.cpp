@@ -1,22 +1,33 @@
 #include <iostream>
-#include <stdlib>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 
-class SimBotSubscribe
+void twistCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-   private:
-      Twist _robot_twist;
-      NodeHandle _node_handle;
-      Subscriber _subscriber;
-   
-   public:
-      SimBotSubscribe()
-      {
-         _subscriber = _node_handle.subscribe(/*Twist,cmd_vel, 1...*/);
-      }
+   ROS_INFO("Robot x,y,z: %f,%f,%f", msg->linear.x, msg->linear.y, msg->linear.z);
 }
 
-int main(int argv, char *argv[])
+
+int main(int argc, char *argv[])
 {
-   init() // ...
+   ros::init(argc, argv, "simBotSubscriber", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
+   ROS_INFO("A simple subscriber node");
+
+   geometry_msgs::Twist robot_twist;
+
+   ros::NodeHandle handle;
+
+   ros::Subscriber twistSub = handle.subscribe("cmd_vel", 1, twistCallback);
+   ROS_INFO("Num publishers: %d", twistSub.getNumPublishers());
+
+   ros::Rate loop_rate(100);
+   while(ros::ok())
+   {
+      ros::spinOnce();
+      loop_rate.sleep();
+   }
+
+   return 0;
+}
+
+   
