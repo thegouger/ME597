@@ -1,0 +1,16 @@
+<package>
+	<description brief="simBotTeleop">
+		This package contains launch files for teleoperation
+    of the Simulation robot.
+	</description>
+	<author>Siddhant Ahuja/siddahuja@gmail.com/WAVELab</author>
+	<license>BSD</license>
+	<review status="unreviewed" notes=""/>
+	<url>http://ros.org/wiki/simBotTeleop</url>
+	<depend package="std_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+</package>
+
+

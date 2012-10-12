@@ -1,0 +1,1 @@
+/usr/bin/c++   -O2 -g     -pthread CMakeFiles/simBotTeleopKeyboard.dir/src/simBotTeleopKeyboard.o  -o ../bin/simBotTeleopKeyboard -rdynamic -L/opt/ros/fuerte/lib -lroscpp -lrostime -lrosconsole -lroscpp_serialization -lxmlrpcpp -lboost_thread -Wl,-rpath,/opt/ros/fuerte/lib 
