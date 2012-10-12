@@ -1,0 +1,18 @@
+<package>
+  <description brief="simBotSubscribe">
+
+          simBotSubscribe
+
+  </description>
+  <author>Parth</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="simBotCommon"/>
+  <depend package="simBotTeleop"/>
+</package>
+
+
