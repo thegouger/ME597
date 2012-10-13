@@ -1,0 +1,17 @@
+<package>
+  <description brief="simBotSimplePID">
+
+          simBotSimplePID
+
+  </description>
+  <author>Parth</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="nav_msgs"/>
+</package>
+
+
