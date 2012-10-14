@@ -3,13 +3,13 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 
-#define MAX_OUTPUT_SPEED 5.0f;
+const float MAX_OUTPUT_SPEED = 5.0f;
 
-struct vector2d_struct
+struct vector2d
 {
    float x;
    float y;
-} vector2d;
+};
 
 float vector2dMagnitude(vector2d v) { return sqrt(v.x*v.x + v.y*v.y); }
 
@@ -29,7 +29,17 @@ int main(int argc, char* argv[])
 
    ros::NodeHandle nodeHandle;
 
+
+   // desired travel velocity
    float desired_velocity = 2.0f;
+
+   // desired waypoints
+   vector2d waypoints[4]; 
+   waypoints[0] = {1.0f, -1.0f};
+   waypoints[1] = {4.0f, -1.0f};
+   waypoints[2] = {4.0f, 2.0f};
+   waypoints[3] = {1.0f, -1.0f};
+   int way_state = 1;
 
    // PID tuning consts
    float kp = 10.0f, kd = 0.0f, ki = 0.0f;
@@ -77,13 +87,24 @@ int main(int argc, char* argv[])
 
       // Steering controller
 
-      
+      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.1f && fabs(waypoints[way_state % 4].x - current_pos.x))
+      {
+         way_state = (way_state + 1) % 4;
+      }
 
+      float x0,y0,x1,y1,x2,y2;
+      x0 = current_pos.x;
+      y0 = current_pos.y;
+      x1 = waypoints[way_state - 1].x;
+      y1 = waypoints[way_state - 1].y;
+      x2 = waypoints[way_state % 4].x;
+      y2 = waypoints[way_state % 4].y;
+      float cross_track_err = fabs((x2-x2)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+      float steer_angle = atan(ks*cross_track_err / vector2dMagnitude(vel)); 
+      steer_angle /= 0.394;
 
-
-
-
-
+      // publish results
+      cmd_vel.angular.z = steer_angle;
       cmd_vel_pub.publish(cmd_vel);
 
       loop_rate.sleep();
