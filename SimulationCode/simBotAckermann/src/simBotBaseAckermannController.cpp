@@ -186,9 +186,9 @@ void AckermannPlugin::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 	}
 
       
-  wheelSpeed[BACKRIGHT] = 0;
-  wheelSpeed[BACKLEFT] = 0;
-  steerAngle = 0;
+   wheelSpeed[BACKRIGHT] = 0;
+   wheelSpeed[BACKLEFT] = 0;
+   steerAngle = 0;
 
 	x_ = 0;
 	rot_ = 0;
@@ -205,7 +205,7 @@ void AckermannPlugin::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 	joints[FRONTSTEER] = this->parent->GetJoint(frontSteerJointName);
     	
     	
-    	if (!joints[BACKRIGHT])  { gzthrow("The controller couldn't get back right revolute joint"); }
+  	if (!joints[BACKRIGHT])  { gzthrow("The controller couldn't get back right revolute joint"); }
 	if (!joints[BACKLEFT]) { gzthrow("The controller couldn't get back left revolute joint"); }
 	if (!joints[FRONTSTEER]) { gzthrow("The controller couldn't get front steer hinge joint"); }
 
@@ -290,8 +290,13 @@ void AckermannPlugin::UpdateChild()
 
 	joints[BACKLEFT]->SetVelocity(0, wheelSpeed[BACKLEFT] / (wheelDiameter / 2.0));
 	joints[BACKRIGHT]->SetVelocity(0, wheelSpeed[BACKRIGHT] / (wheelDiameter / 2.0));
-	joints[FRONTSTEER]->SetVelocity(0, wheelSpeed[FRONTSTEER] / 2.0);
-	
+
+   // servo imitation code
+   float diff = rot_ * 20.0f - steerAngle; // get diff between current and goal, assumes 20 degrees for max turning steering angle
+   if (fabs( diff ) > 0.1) // check against threshold
+       joints[FRONTSTEER]->SetVelocity(0 , diff > 0.0 ? 40.0 : -40.0); // set to max velocity possible in necessary direction
+   steerAngle = joints[FRONTSTEER]->GetAngle( 0 ).GetAsDegree(); // save current angle
+
 	//ROS_INFO("Applied Angular Velocity=%2.4f",  wheelSpeed[FRONTSTEER] / 2.0);
 	
 	joints[BACKLEFT]->SetMaxForce(0, driveTorque);
@@ -316,16 +321,14 @@ void AckermannPlugin::GetPositionCmd()
 {
 	lock.lock();
 
-	double vr, va;
+	double vr;
 
 	vr = x_; //myIface->data->cmdVelocity.pos.x;
-	va = rot_; //myIface->data->cmdVelocity.yaw;
 
 	//std::cout << "X: [" << x_ << "] ROT: [" << rot_ << "]" << std::endl;
 
 	wheelSpeed[BACKLEFT] = vr;
 	wheelSpeed[BACKRIGHT] = vr;
-	wheelSpeed[FRONTSTEER] = va;
 
 	lock.unlock();
 }

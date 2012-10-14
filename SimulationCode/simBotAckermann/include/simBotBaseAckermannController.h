@@ -59,79 +59,79 @@
 
 namespace gazebo
 {
-        class Joint;
-        class Entity;
+    class Joint;
+    class Entity;
 
-        class AckermannPlugin : public ModelPlugin
-        {
-                public:
-                        AckermannPlugin();
-                        ~AckermannPlugin();     
-			void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
-		
-		protected:
-			virtual void UpdateChild();
-              		virtual void FiniChild();
+    class AckermannPlugin : public ModelPlugin
+    {
+      public:
+         AckermannPlugin();
+         ~AckermannPlugin();     
+         void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
+  
+      protected:
+          virtual void UpdateChild();
+          virtual void FiniChild();
 
-                private:
-                        void write_position_data();
-                        void populateCovariance(nav_msgs::Odometry &msg);
-                        void publish_wheel_odometry();
-                        void GetPositionCmd();
-                        
-                        physics::WorldPtr world;
-			physics::ModelPtr parent;
-			event::ConnectionPtr updateConnection;
-			
-			std::string backLeftJointName;
-			std::string backRightJointName;
-			std::string frontSteerJointName;
-			
-                        double wheelBase;
-                        double wheelTrack;
-                        double wheelDiameter;
-                        double driveTorque;
-                        double steerTorque;
-                        double steerAngle;
-                        double wheelSpeed[3];
-                        double wheelOdomPose[3];
-                        double wheelOdomVel[3];
-                      
-                        physics::JointPtr joints[3];
-			physics::PhysicsEnginePtr physicsEngine;
+      private:
+         void write_position_data();
+         void populateCovariance(nav_msgs::Odometry &msg);
+         void publish_wheel_odometry();
+         void GetPositionCmd();
+                    
+         physics::WorldPtr world;
+         physics::ModelPtr parent;
+         event::ConnectionPtr updateConnection;
+     
+         std::string backLeftJointName;
+         std::string backRightJointName;
+         std::string frontSteerJointName;
+     
+         double wheelBase;
+         double wheelTrack;
+         double wheelDiameter;
+         double driveTorque;
+         double steerTorque;
+         double steerAngle;
+         double wheelSpeed[2];
+         double wheelOdomPose[3];
+         double wheelOdomVel[3];
+                  
+         physics::JointPtr joints[3];
+         physics::PhysicsEnginePtr physicsEngine;
 
-			// ROS STUFF
-			ros::NodeHandle* rosnode_;
-			ros::Publisher pub_;
-			ros::Subscriber sub_;
-			tf::TransformBroadcaster *transform_broadcaster_;
-			nav_msgs::Odometry wheel_odom_;
-			std::string tf_prefix_;
+         // ROS STUFF
+         ros::NodeHandle* rosnode_;
+         ros::Publisher pub_;
+         ros::Subscriber sub_;
+         tf::TransformBroadcaster *transform_broadcaster_;
+         nav_msgs::Odometry wheel_odom_;
+         std::string tf_prefix_;
 
-			boost::mutex lock;
+         boost::mutex lock;
 
-			std::string robotNamespace;
-			std::string topicName;
+         std::string robotNamespace;
+         std::string topicName;
 
-			// Custom Callback Queue
-			ros::CallbackQueue queue_;
-			boost::thread callback_queue_thread_;
-			void QueueThread();
+         // Custom Callback Queue
+         ros::CallbackQueue queue_;
+         boost::thread callback_queue_thread_;
+         void QueueThread();
 
-			// AckermannDrive stuff
-			void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg);
+         // AckermannDrive stuff
+         void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg);
 
-			double x_;
-			double rot_;
-			bool alive_;
-			
-			double sigma_x_;
-                        double sigma_y_;
-                        double sigma_theta_;
-                        double cov_x_y_;
-                        double cov_x_theta_;
-                        double cov_y_theta_;
-	};
+         double x_;
+         double rot_;
+         bool alive_;
+     
+         double sigma_x_;
+         double sigma_y_;
+         double sigma_theta_;
+         double cov_x_y_;
+         double cov_x_theta_;
+         double cov_y_theta_;
+   };
 
 }
 
