@@ -35,10 +35,10 @@ int main(int argc, char* argv[])
 
    // desired waypoints
    vector2d waypoints[4]; 
-   waypoints[0] = {1.0f, -1.0f};
-   waypoints[1] = {4.0f, -1.0f};
-   waypoints[2] = {4.0f, 2.0f};
-   waypoints[3] = {1.0f, -1.0f};
+   waypoints[0].x = 1.0f; waypoints[0].y = -1.0f;
+   waypoints[1].x = 4.0f; waypoints[0].y = -1.0f;
+   waypoints[2].x = 4.0f; waypoints[0].y = 2.0f;
+   waypoints[3].x = 1.0f; waypoints[0].y = 2.0f;
    int way_state = 1;
 
    // PID tuning consts
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
       // current velocity in units/sec
       vector2d vel;
       vel.x = (current_pos.x - old_pos.x) * 100.0f;
-      vel.y = (current_pos.x - old_pos.y) * 100.0f;
+      vel.y = (current_pos.y - old_pos.y) * 100.0f;
 
       // PID terms
       float error = desired_velocity - vector2dMagnitude(vel);
@@ -84,12 +84,12 @@ int main(int argc, char* argv[])
 
       cmd_vel.linear.x = vel_output;
 
-
       // Steering controller
 
-      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.1f && fabs(waypoints[way_state % 4].x - current_pos.x))
+      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.05f && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.05f)
       {
-         way_state = (way_state + 1) % 4;
+         ROS_INFO("Acheived waypoint: %d", way_state);
+         way_state = way_state % 4 + 1;
       }
 
       float x0,y0,x1,y1,x2,y2;
@@ -99,13 +99,22 @@ int main(int argc, char* argv[])
       y1 = waypoints[way_state - 1].y;
       x2 = waypoints[way_state % 4].x;
       y2 = waypoints[way_state % 4].y;
-      float cross_track_err = fabs((x2-x2)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-      float steer_angle = atan(ks*cross_track_err / vector2dMagnitude(vel)); 
-      steer_angle /= 0.394;
+      float cross_track_err = fabs((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+      float steer_angle = atan(ks*cross_track_err / vector2dMagnitude(vel)) + fabs(vel.y) > 0.0f ? atan(vel.y / vel.x) : 3.14f/2.0f; 
+      steer_angle /= 0.394f;
+
+      if(steer_angle > 1.0f)       steer_angle = 1.0f;
+      else if(steer_angle < -1.0f) steer_angle = - 1.0f;
 
       // publish results
       cmd_vel.angular.z = steer_angle;
       cmd_vel_pub.publish(cmd_vel);
+
+      // set old values
+      old_pos.x = current_pos.x;
+      old_pos.y = current_pos.y;
+      old_vel.x = vel.x;
+      old_vel.y = vel.y;
 
       loop_rate.sleep();
    }
