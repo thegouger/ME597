@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
       x2 = waypoints[way_state % 4].x;
       y2 = waypoints[way_state % 4].y;
 
-      float heading = atan2((y2-y0), (x2-x0)) - atan2(vel.y, vel.x);
+      float heading = atan2((y2-y1), (x2-x1)) - atan2(vel.y, vel.x);
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
       float steer_angle = heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
       steer_angle /= 0.394f;
