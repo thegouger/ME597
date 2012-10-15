@@ -31,21 +31,21 @@ int main(int argc, char* argv[])
 
 
    // desired travel velocity
-   float desired_velocity = 2.0f;
+   float desired_velocity = 0.5f;
 
    // desired waypoints
    vector2d waypoints[4]; 
-   waypoints[0].x = 1.0f; waypoints[0].y = -1.0f;
-   waypoints[1].x = 4.0f; waypoints[0].y = -1.0f;
-   waypoints[2].x = 4.0f; waypoints[0].y = 2.0f;
-   waypoints[3].x = 1.0f; waypoints[0].y = 2.0f;
+   waypoints[0].x = 4.0f; waypoints[0].y = -4.0f;
+   waypoints[1].x = 8.0f; waypoints[1].y = -4.0f;
+   waypoints[2].x = 8.0f; waypoints[2].y = 0.0f;
+   waypoints[3].x = 4.0f; waypoints[3].y = 0.0f;
    int way_state = 1;
 
    // PID tuning consts
    float kp = 10.0f, kd = 0.0f, ki = 0.0f;
 
    // Stanley constant
-   float ks = 1.0f;
+   float ks = 0.5f;
 
    // PID, steering intermediaries
    vector2d old_pos = {0.0f, 0.0f}, old_vel = {0.0f, 0.0f};
@@ -85,7 +85,6 @@ int main(int argc, char* argv[])
       cmd_vel.linear.x = vel_output;
 
       // Steering controller
-
       if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.05f && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.05f)
       {
          ROS_INFO("Acheived waypoint: %d", way_state);
@@ -99,12 +98,17 @@ int main(int argc, char* argv[])
       y1 = waypoints[way_state - 1].y;
       x2 = waypoints[way_state % 4].x;
       y2 = waypoints[way_state % 4].y;
-      float cross_track_err = fabs((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-      float steer_angle = atan(ks*cross_track_err / vector2dMagnitude(vel)) + fabs(vel.y) > 0.0f ? atan(vel.y / vel.x) : 3.14f/2.0f; 
+
+      float heading = atan2((y2-y0), (x2-x0)) - atan2(vel.y, vel.x);
+      float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+      float steer_angle = heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
       steer_angle /= 0.394f;
 
       if(steer_angle > 1.0f)       steer_angle = 1.0f;
       else if(steer_angle < -1.0f) steer_angle = - 1.0f;
+
+      //ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f", x0, y0, cross_track_err, heading, steer_angle);
+      //ROS_INFO("Waypoint: %f,%f", x1, y1);
 
       // publish results
       cmd_vel.angular.z = steer_angle;
