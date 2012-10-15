@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
    float kp = 10.0f, kd = 0.0f, ki = 0.0f;
 
    // Stanley constant
-   float ks = 0.5f;
+   float ks = 2.5f;
 
    // PID, steering intermediaries
    vector2d old_pos = {0.0f, 0.0f}, old_vel = {0.0f, 0.0f};
