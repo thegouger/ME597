@@ -2,7 +2,7 @@
 <launch>
    <node pkg="robotDrivingController" type="robotDrivingController" name="robotDrivingController" output="screen">
       <param name="desired_velocity" value="0.5" />
-      <param name="max_output_speed" value="1.00" />
+      <param name="max_output_speed" value="100.0" />
       <param name="max_steering_angle" value="0.394" />
       <param name="stanley_const" value="0.5" />
       <param name="num_waypoints" value="4" />
