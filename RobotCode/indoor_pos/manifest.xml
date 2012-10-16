@@ -1,0 +1,16 @@
+<package>
+  <description brief="indoor_pos">
+
+     indoor_pos
+
+  </description>
+  <author>Prasenjit</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/indoor_pos</url>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+ * Copyright (c) 2012, Siddhant Ahuja (Sid)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Siddhant Ahuja (Sid) nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+-->
+<!--
+ * Desc: This program launches the package containing the drivers for the physical robot
+ * Author: Siddhant Ahuja
+-->
+
+<launch>
+	<node pkg="clearpath_horizon" type="horizon.py" name="horizon" respawn="true" output="screen">
+		<!-- Uncomment the following line to manually specify serial device, rather
+		than autodetecting between available /dev/ttyUSB devices.
+		-->
+		<!-- <param name="port" value="/dev/ttyUSB0" /> -->
+
+		<!-- Type of commands given: velocity_control or output_control 
+		Output control is available on all platforms; velocity control
+		is available on feedback control platforms.
+		-->
+
+		<param name="velocity_control" value="1" />
+		<!-- Horizon Data Subscriptions
+		The examples shown are available on all platforms. Depending on
+		your platform's equipment, the following may also be available:
+		- velocity (commanded, not actual)
+		- differential_speed (commanded, not actual)
+		- differential_output (actual)
+		- ackermann_output (actual)
+		- platform_orientation
+		- platform_rotation
+		- encoders
+		- raw_encoders
+		- distance (for rangefinders)
+		-->
+		<param name="data/system_status" value="10" />
+		<param name="data/safety_status" value="10" />
+		<param name="data/power_status" value="1" />
+	</node>
+
+	
+</launch>

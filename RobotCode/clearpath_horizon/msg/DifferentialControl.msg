@@ -1,0 +1,13 @@
+Header header
+float64 left_p
+float64 left_i
+float64 left_d
+float64 left_ff
+float64 left_sc
+float64 left_il
+float64 right_p
+float64 right_i
+float64 right_d
+float64 right_ff
+float64 right_sc
+float64 right_il
