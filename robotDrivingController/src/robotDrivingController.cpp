@@ -26,7 +26,7 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 int main(int argc, char* argv[])
 {
 
-   ros::init(argc, argv, "simBotDrivingController");
+   ros::init(argc, argv, "robotDrivingController");
    ROS_INFO("Combined velocity and steering controller");
 
    ros::NodeHandle nodeHandle;

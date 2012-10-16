@@ -1,5 +1,5 @@
 <package>
-	<description brief="simBotDrivingController">
+	<description brief="robotDrivingController">
       Driving controller
 	</description>
 	<author>Parth Davé</author>
@@ -9,8 +9,7 @@
    <depend package="geometry_msgs"/>
    <depend package="roscpp"/>
    <depend package="rospy"/>
-   <depend package="nav_msgs"/>
-   <depend package="geometry_msgs"/>
+   <depend package="indoor_pos"/>
 </package>
 
 
