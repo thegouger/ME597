@@ -35,17 +35,17 @@ int main(int argc, char* argv[])
 
    // desired waypoints
    vector2d waypoints[4]; 
-   waypoints[0].x = 4.0f; waypoints[0].y = -4.0f;
-   waypoints[1].x = 8.0f; waypoints[1].y = -4.0f;
-   waypoints[2].x = 8.0f; waypoints[2].y = 0.0f;
-   waypoints[3].x = 4.0f; waypoints[3].y = 0.0f;
+   waypoints[0].x = 5.0f; waypoints[0].y = -5.0f;
+   waypoints[1].x = 10.0f; waypoints[1].y = -5.0f;
+   waypoints[2].x = 10.0f; waypoints[2].y = 0.0f;
+   waypoints[3].x = 5.0f; waypoints[3].y = 0.0f;
    int way_state = 1;
 
    // PID tuning consts
    float kp = 10.0f, kd = 0.0f, ki = 0.0f;
 
    // Stanley constant
-   float ks = 2.5f;
+   float ks = 0.5f;
 
    // PID, steering intermediaries
    vector2d old_pos = {0.0f, 0.0f}, old_vel = {0.0f, 0.0f};
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
       cmd_vel.linear.x = vel_output;
 
       // Steering controller
-      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.05f && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.05f)
+      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.1f && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.1f)
       {
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
       float heading = atan2((y2-y1), (x2-x1)) - atan2(vel.y, vel.x);
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-      float steer_angle = heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
+      float steer_angle = 1.5*heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
       steer_angle /= 0.394f;
 
       if(steer_angle > 1.0f)       steer_angle = 1.0f;
