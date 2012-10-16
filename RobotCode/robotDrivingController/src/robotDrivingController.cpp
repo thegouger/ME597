@@ -31,9 +31,12 @@ int main(int argc, char* argv[])
 
    ros::NodeHandle nodeHandle;
 
+   bool enable_steering;
+   nodeHandle.getParam("enable_steering", enable_steering);
 
    // desired travel velocity
-   float desired_velocity = 0.5f;
+   float desired_velocity; // 0.5f
+   nodeHandle.getParam("desired_velocity", desired_velocity);
 
    // desired waypoints
    vector2d waypoints[4]; 
@@ -47,11 +50,15 @@ int main(int argc, char* argv[])
    float kp = 10.0f, kd = 0.0f, ki = 0.0f;
 
    // Stanley constant
-   float ks = 0.5f;
+   float ks; //  0.5f;
+   nodeHandle.getParam("stanley_const", ks);
 
    // PID, steering intermediaries
    vector2d old_pos = {0.0f, 0.0f}, old_vel = {0.0f, 0.0f};
    float err_sum = 0.0f;
+
+   float max_steering_angle; // 20 deg ?
+   nodeHandle.getParam("max_steering_angle", max_steering_angle);
 
    // msgs to send/receive
    geometry_msgs::Twist cmd_vel;
@@ -103,7 +110,7 @@ int main(int argc, char* argv[])
       float heading = atan2((y2-y1), (x2-x1)) - yaw;
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
       float steer_angle = 1.5*heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
-      steer_angle /= 0.394f;
+      steer_angle /= max_steering_angle;
 
       if(steer_angle > 1.0f)       steer_angle = 1.0f;
       else if(steer_angle < -1.0f) steer_angle = - 1.0f;
@@ -111,8 +118,10 @@ int main(int argc, char* argv[])
       //ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f", x0, y0, cross_track_err, heading, steer_angle);
       //ROS_INFO("Waypoint: %f,%f", x1, y1);
 
+      if(enable_steering)
+        cmd_vel.angular.z = steer_angle;
+
       // publish results
-      cmd_vel.angular.z = steer_angle;
       cmd_vel_pub.publish(cmd_vel);
 
       // set old values

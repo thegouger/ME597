@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 <launch>
    <node pkg="robotDrivingController" type="robotDrivingController" name="robotDrivingController" output="screen">
-      <param name="max_output_speed" value="5.00" />
+      <param name="desired_velocity" value="0.5" />
+      <param name="max_output_speed" value="1.00" />
       <param name="max_steering_angle" value="0.394" />
       <param name="stanley_const" value="0.5" />
       <param name="num_waypoints" value="4" />
       <param name="way_points" value="{{4.0, -4.0}, {8.0, -4.0}, {8.0, 0.0}, {4.0, 0.0}}" />
+      <param name="enable_steering" value = "0" />
    </node>
 </launch>
 
