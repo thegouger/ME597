@@ -39,6 +39,8 @@ geometry_msgs/Twist.h
 -
 indoor_pos/ips_msg.h
 -
+fstream
+-
 
 /opt/ros/fuerte/include/XmlRpcDecl.h
 ros/macros.h
