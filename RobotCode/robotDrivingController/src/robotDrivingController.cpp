@@ -14,14 +14,42 @@ struct vector2d
 
 float vector2dMagnitude(vector2d v) { return sqrt(v.x*v.x + v.y*v.y); }
 
-vector2d current_pos;
+// state globals
+vector2d current_pos = {0.0f, 0.0f};
+vector2d old_pos = {0.0f, 0.0f};
+vector2d current_vel = {0.0f, 0.0f};
+vector2d old_vel = {0.0f, 0.0f};
+vector2d delta_vel = {0.0f, 0.0f};
+
 float    current_yaw;
+
+bool     position_acquired; // used to determine whether the IPS has given us a position
+double   old_time;
 
 void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 {
+   // record time between callbacks to accurately determine velocity
+   double timeBetweenCallbacks = ros::Time.now().toSec() - old_time;
+   old_time = ros::Time.now().toSec();
+
    current_pos.x = msg->X;
    current_pos.y = msg->Y;
    current_yaw   = msg->Yaw/180.0*3.14159;
+
+   if(position_acquired)
+   {
+      current_vel.x = (current_pos.x - old_pos.x) / timeBetweenCallbacks;
+      current_vel.y = (current_pos.y - old_pos.y) / timeBetweenCallbacks;
+      delta_vel.x = (current_vel.x - old_vel.x) / timeBetweenCallbacks;
+      delta_vel.y = (current_vel.y - old_vel.y) / timeBetweenCallbacks;
+   }
+
+   old_pos.x = current_pos.x;
+   old_pos.y = current_pos.y;
+   old_vel.x = current_vel.x;
+   old_vel.y = current_vel.y;
+
+   position_acquired = true;
 }
 
 int main(int argc, char* argv[])
@@ -68,7 +96,7 @@ int main(int argc, char* argv[])
 
    // subscribe to odom, publish cmd_vel
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, indoorPosCallback);
-   ros::Publisher cmd_vel_pub = nodeHandle.advertise<geometry_msgs::Twist>("cmd_vel", 100);
+   ros::Publisher cmd_vel_pub = nodeHandle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
    ros::Rate loop_rate(20); // be sure to use sim time if simulating
 
@@ -79,30 +107,19 @@ int main(int argc, char* argv[])
    {
       ros::spinOnce();
 
-      if(current_pos.x == 0.0)
+      // haven't gotten a callback yet
+      if(!positionAcquired) // current_pos.x == 0.0)
       {
-	      loop_rate.sleep();
+	       loop_rate.sleep();
 	       continue;
       } 
-      else if(!execute_once)
-      {
-	      old_pos.x = current_pos.x;
-	      old_pos.y = current_pos.y;
-	      execute_once = true;
-      }
-
       // PID controller
 
-      // current velocity in m/sec
-      vector2d vel;
-      vel.x = (current_pos.x - old_pos.x) * 20.0f;
-      vel.y = (current_pos.y - old_pos.y) * 20.0f;
-
       // PID terms
-      float error = desired_velocity - vector2dMagnitude(vel);
+      float error = desired_velocity - vector2dMagnitude(current_vel);
       err_sum += error;
 
-      float dv = (vector2dMagnitude(vel) - vector2dMagnitude(old_vel))*20.0f;
+      float dv = (vector2dMagnitude(current_vel) - vector2dMagnitude(old_vel));
 
       float vel_output = error * kp + dv * kd + err_sum * ki;
 
@@ -115,12 +132,14 @@ int main(int argc, char* argv[])
       // Steering controller
       if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.2 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.2f)
       {
+         outfile << "Acheived waypoint\n" << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
       }
 
       if(sqrt(pow(waypoints[way_state % 4].x - current_pos.x, 2.0) + pow(waypoints[way_state % 4].y - current_pos.y, 2.0) < 0.4))
       {
+         outfile << "Acheived waypoint: "  << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
       }
@@ -137,7 +156,7 @@ int main(int argc, char* argv[])
       vector2d path_vector    = {x2-x1, y2-y1};
       float heading = acos((path_vector.x * heading_vector.x + path_vector.y * heading_vector.y)/vector2dMagnitude(path_vector)); //atan2((y2-y1), (x2-x1)) - current_yaw;
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-      float steer_angle = heading + atan(ks*cross_track_err/vector2dMagnitude(vel)); 
+      float steer_angle = heading + atan(ks*cross_track_err/vector2dMagnitude(current_vel)); 
       steer_angle = steer_angle/max_steering_angle * 100.0f;  // percentage
 
       if(steer_angle > 100.0f)       steer_angle = 100.0f;
@@ -153,12 +172,6 @@ int main(int argc, char* argv[])
 
       // publish results
       cmd_vel_pub.publish(cmd_vel);
-
-      // set old values
-      old_pos.x = current_pos.x;
-      old_pos.y = current_pos.y;
-      old_vel.x = vel.x;
-      old_vel.y = vel.y;
 
       loop_rate.sleep();
    }
