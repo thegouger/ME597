@@ -44,9 +44,9 @@ int main(int argc, char* argv[])
    // desired waypoints
    vector2d waypoints[4]; // 4
    waypoints[0].x = -1.560f; waypoints[0].y = -1.232;
-   waypoints[1].x = 0.0f; waypoints[1].y = -1.2f;
-   waypoints[2].x = 0.630f; waypoints[2].y = 1.33f;
-   waypoints[3].x = -1.6f; waypoints[3].y = .75f;
+   waypoints[1].x = 0.0f;    waypoints[1].y = -1.2f;
+   waypoints[2].x = 0.630f;  waypoints[2].y = 1.33f;
+   waypoints[3].x = -1.6f;   waypoints[3].y = .75f;
    int way_state = 1;
 
    // PID tuning consts
@@ -72,26 +72,28 @@ int main(int argc, char* argv[])
 
    ros::Rate loop_rate(20); // be sure to use sim time if simulating
 
-   outfile<< "x       y       velocity      desired vel\n";
+   // file output
+   outfile<< "x       y       velocity      desired_vel     vel_output      heading    crosstrack_error   steer_angle\n";
+   
    while(ros::ok())
    {
       ros::spinOnce();
 
       if(current_pos.x == 0.0)
       {
-	  loop_rate.sleep();
-	  continue;
+	      loop_rate.sleep();
+	       continue;
       } 
       else if(!execute_once)
       {
-	old_pos.x = current_pos.x;
-	old_pos.y = current_pos.y;
-	execute_once = true;
+	      old_pos.x = current_pos.x;
+	      old_pos.y = current_pos.y;
+	      execute_once = true;
       }
 
       // PID controller
 
-      // current velocity in units/sec
+      // current velocity in m/sec
       vector2d vel;
       vel.x = (current_pos.x - old_pos.x) * 20.0f;
       vel.y = (current_pos.y - old_pos.y) * 20.0f;
@@ -99,21 +101,16 @@ int main(int argc, char* argv[])
       // PID terms
       float error = desired_velocity - vector2dMagnitude(vel);
       err_sum += error;
-      if(error < 0)
-        error = 0;
+
       float dv = (vector2dMagnitude(vel) - vector2dMagnitude(old_vel))*20.0f;
 
       float vel_output = error * kp + dv * kd + err_sum * ki;
 
       // limit velocity output
       if(vel_output > MAX_OUTPUT_SPEED)       vel_output = MAX_OUTPUT_SPEED;
-      else if(vel_output < 0) vel_output = 0.0;
-
-//     if(fabs(err_sum) > 5)
-//	err_sum = 0;
+      else if(vel_output < 0) vel_output = 0.0; // don't drive backwards
 
       cmd_vel.linear.x = 40.0;// vel_output;
-      outfile<< current_pos.x << " " <<  current_pos.y << " " << vector2dMagnitude(vel) << " "<< desired_velocity << "\n";
 
       // Steering controller
       if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.2 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.2f)
@@ -146,8 +143,9 @@ int main(int argc, char* argv[])
       if(steer_angle > 100.0f)       steer_angle = 100.0f;
       else if(steer_angle < -100.0f) steer_angle = -100.0f;
 
-       ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
-      //ROS_INFO("Waypoint: %f,%f", x1, y1);
+      ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
+      
+      outfile<< current_pos.x << " " <<  current_pos.y << " " << vector2dMagnitude(vel) << " "<< desired_velocity << " " << vel_output << " " << heading << " " << cross_track_err << " " << steer_angle << "\n";
 
       // ROS_INFO("Current x: %f, Current y: %f, Error:  %f, Sum: %f \n", x0, y0, error, err_sum);
 
