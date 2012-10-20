@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
       // Steering controller
       if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.2 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.2f)
       {
-         outfile << "Acheived waypoint\n" << way_state << "\n";
+         outfile << "Acheived waypoint: " << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
       }
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 
       ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
       
-      outfile<< current_pos.x << " " <<  current_pos.y << " " << vector2dMagnitude(vel) << " "<< desired_velocity << " " << vel_output << " " << heading << " " << cross_track_err << " " << steer_angle << "\n";
+      outfile<< current_pos.x << " " <<  current_pos.y << " " << vector2dMagnitude(current_vel) << " "<< desired_velocity << " " << vel_output << " " << heading << " " << cross_track_err << " " << steer_angle << "\n";
 
       // ROS_INFO("Current x: %f, Current y: %f, Error:  %f, Sum: %f \n", x0, y0, error, err_sum);
 
