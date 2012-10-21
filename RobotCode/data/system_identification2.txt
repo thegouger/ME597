@@ -1,4 +1,4 @@
-x       y       velocity      desired_vel     vel_output(20%)      heading    crosstrack_error   steer_angle
+x       y       velocity      desired_vel     vel_output(80%)      heading    crosstrack_error   steer_angle
 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0
 0 0 0.008 0 0 0 0 0
