@@ -61,6 +61,7 @@
 		<param name="data/system_status" value="10" />
 		<param name="data/safety_status" value="10" />
 		<param name="data/power_status" value="1" />
+		<param name="data/encoders" value="20" />
 	</node>
 
 	

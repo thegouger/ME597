@@ -55,7 +55,14 @@ CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fue
 CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/share/roscpp/manifest.xml
 CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/share/rospy/manifest.xml
 CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/share/diagnostic_msgs/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/stacks/diagnostics/diagnostic_updater/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/share/sensor_msgs/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/share/rosbag/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /opt/ros/fuerte/stacks/joystick_drivers/joy/manifest.xml
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /home/wavelab/TeamAwesome/ME597/RobotCode/clearpath_horizon/manifest.xml
 CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/msg_gen/generated
+CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o: /home/wavelab/TeamAwesome/ME597/RobotCode/clearpath_horizon/msg_gen/generated
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/wavelab/TeamAwesome/ME597/RobotCode/robotDrivingController/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/robotDrivingController.dir/src/robotDrivingController.o -c /home/wavelab/TeamAwesome/ME597/RobotCode/robotDrivingController/src/robotDrivingController.cpp

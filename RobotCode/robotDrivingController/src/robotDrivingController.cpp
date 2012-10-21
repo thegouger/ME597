@@ -2,8 +2,13 @@
 #include <cmath>
 #include <geometry_msgs/Twist.h>
 #include <indoor_pos/ips_msg.h>
+#include <clearpath_horizon/Encoder.h>
+#include <clearpath_horizon/Encoders.h>
 #include <fstream>
 
+#define ENCODERS 1
+
+std::ofstream outfile;
 const float MAX_OUTPUT_SPEED = 100.0f;
 
 struct vector2d
@@ -29,8 +34,8 @@ double   old_time;
 void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 {
    // record time between callbacks to accurately determine velocity
-   double timeBetweenCallbacks = ros::Time.now().toSec() - old_time;
-   old_time = ros::Time.now().toSec();
+   double timeBetweenCallbacks = ros::Time::now().toSec() - old_time;
+   old_time = ros::Time::now().toSec();
 
    current_pos.x = msg->X;
    current_pos.y = msg->Y;
@@ -52,6 +57,15 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
    position_acquired = true;
 }
 
+#ifdef ENCODERS
+void encoderCallback(const clearpath_horizon::EncodersConstPtr& msg)
+{
+   current_vel.x = msg->encoders[0].speed;
+    outfile<< "0" << " " << "0"  << " " << vector2dMagnitude(current_vel) << " "<< "0" << " " << "0" << " " << "0" << " " << "0" << " " << "0" << "\n";
+   position_acquired = true;
+}
+#endif
+
 int main(int argc, char* argv[])
 {
 
@@ -60,8 +74,7 @@ int main(int argc, char* argv[])
 
    ros::NodeHandle nodeHandle;
 
-   std::ofstream outfile;
-   outfile.open("velocity.txt");
+   outfile.open("system_identification3.txt");
 
    bool enable_steering = false;  
    bool execute_once = true;
@@ -77,6 +90,12 @@ int main(int argc, char* argv[])
    waypoints[3].x = -1.6f;   waypoints[3].y = .75f;
    int way_state = 1;
 
+   #ifndef ENCODERS
+   for (int i=0; i<3; i++) {
+      outfile << waypoints[i].x << "," << waypoints[i].y << "\n";
+   }
+   #endif
+
    // PID tuning consts
    float kp = 100.0f, kd = 0.0f, ki = 5.0f;
 
@@ -85,7 +104,6 @@ int main(int argc, char* argv[])
    // nodeHandle.getParam("stanley_const", ks);
 
    // PID, steering intermediaries
-   vector2d old_pos = {0.0f, 0.0f}, old_vel = {0.0f, 0.0f};
    double err_sum = 0.0f;
 
    double max_steering_angle = 0.394; // 20 deg ?
@@ -98,6 +116,10 @@ int main(int argc, char* argv[])
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, indoorPosCallback);
    ros::Publisher cmd_vel_pub = nodeHandle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
+   #ifdef ENCODERS
+   ros::Subscriber encoder_sub = nodeHandle.subscribe("/data/encoders", 1, encoderCallback);
+   #endif
+
    ros::Rate loop_rate(20); // be sure to use sim time if simulating
 
    // file output
@@ -108,15 +130,19 @@ int main(int argc, char* argv[])
       ros::spinOnce();
 
       // haven't gotten a callback yet
-      if(!positionAcquired) // current_pos.x == 0.0)
+      if(!position_acquired) // current_pos.x == 0.0)
       {
-	       loop_rate.sleep();
-	       continue;
-      } 
+	 loop_rate.sleep();
+	 continue;
+      }
+
       // PID controller
 
+      vector2d heading_vector = {cos(current_yaw), sin(current_yaw)};
+      float velocity_sign = (heading_vector.x*current_vel.x + heading_vector.y*current_vel.y);
+      velocity_sign /= fabs(velocity_sign); 
       // PID terms
-      float error = desired_velocity - vector2dMagnitude(current_vel);
+      float error = desired_velocity - velocity_sign*vector2dMagnitude(current_vel);
       err_sum += error;
 
       float dv = (vector2dMagnitude(current_vel) - vector2dMagnitude(old_vel));
@@ -127,7 +153,9 @@ int main(int argc, char* argv[])
       if(vel_output > MAX_OUTPUT_SPEED)       vel_output = MAX_OUTPUT_SPEED;
       else if(vel_output < 0) vel_output = 0.0; // don't drive backwards
 
-      cmd_vel.linear.x = 40.0;// vel_output;
+      cmd_vel.linear.x = 30.0;// vel_output;
+
+      #ifndef ENCODERS
 
       // Steering controller
       if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.2 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.2f)
@@ -152,7 +180,6 @@ int main(int argc, char* argv[])
       x2 = waypoints[way_state % 4].x;
       y2 = waypoints[way_state % 4].y;
 
-      vector2d heading_vector = {cos(current_yaw), sin(current_yaw)};
       vector2d path_vector    = {x2-x1, y2-y1};
       float heading = acos((path_vector.x * heading_vector.x + path_vector.y * heading_vector.y)/vector2dMagnitude(path_vector)); //atan2((y2-y1), (x2-x1)) - current_yaw;
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
@@ -168,7 +195,10 @@ int main(int argc, char* argv[])
 
       // ROS_INFO("Current x: %f, Current y: %f, Error:  %f, Sum: %f \n", x0, y0, error, err_sum);
 
-      cmd_vel.angular.z = steer_angle;
+//      cmd_vel.angular.z = steer_angle;
+      cmd_vel.angular.z = 0.0;
+
+      #endif
 
       // publish results
       cmd_vel_pub.publish(cmd_vel);

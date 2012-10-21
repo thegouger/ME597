@@ -13,6 +13,8 @@ SET(CMAKE_C_INCLUDE_PATH
   "../include"
   "/opt/ros/fuerte/include"
   "/home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/msg_gen/cpp/include"
+  "/home/wavelab/TeamAwesome/ME597/RobotCode/clearpath_horizon/msg_gen/cpp/include"
+  "/opt/ros/fuerte/stacks/diagnostics/diagnostic_updater/include"
   )
 SET(CMAKE_CXX_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
 SET(CMAKE_Fortran_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
