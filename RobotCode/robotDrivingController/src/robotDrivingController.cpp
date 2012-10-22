@@ -78,13 +78,13 @@ int main(int argc, char* argv[])
 
    ros::NodeHandle nodeHandle;
 
-   outfile.open("square_track_PID1.txt");
+   outfile.open("square_track_PID7_more_tolerance.txt");
 
    bool enable_steering = false;  
    bool execute_once = true;
 
    // desired travel velocity
-   double desired_velocity = 0.200; // vel in m/s f
+   double desired_velocity = 0.500; // vel in m/s f
 
    // desired waypoints
    vector2d waypoints[4]; // 4
@@ -94,6 +94,8 @@ int main(int argc, char* argv[])
    waypoints[3].x = -1.0f;   waypoints[3].y = 1.45f;
    int way_state = 1;
 
+   outfile << "Desired velocity: " << desired_velocity << "\n";
+   outfile << "Waypoints: \n";
    for (int i=0; i<4; i++) {
       outfile << waypoints[i].x << "," << waypoints[i].y << "\n";
    }
@@ -164,19 +166,19 @@ int main(int argc, char* argv[])
       cmd_vel.linear.x = vel_output;
 
       // Steering controller
-      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.2 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.2f)
+      if(fabs(waypoints[way_state % 4].x - current_pos.x) < 0.30 && fabs(waypoints[way_state % 4].y - current_pos.y) < 0.30f)
       {
          outfile << "Acheived waypoint: " << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
       }
 
-//      if(sqrt(pow(waypoints[way_state % 4].x - current_pos.x, 2.0) + pow(waypoints[way_state % 4].y - current_pos.y, 2.0) < 0.4))
-//      {
-//         outfile << "Acheived waypoint: "  << way_state << "\n";
-//         ROS_INFO("Acheived waypoint: %d", way_state);
-//         way_state = way_state % 4 + 1;
-//      }
+      if(sqrt(pow(waypoints[way_state % 4].x - current_pos.x, 2.0) + pow(waypoints[way_state % 4].y - current_pos.y, 2.0) < 0.4))
+      {
+         outfile << "Acheived waypoint: "  << way_state << "\n";
+         ROS_INFO("Acheived waypoint: %d", way_state);
+         way_state = way_state % 4 + 1;
+      }
 
       float x0,y0,x1,y1,x2,y2;
       x0 = current_pos.x;
@@ -197,9 +199,7 @@ int main(int argc, char* argv[])
 
       ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
       
-      #ifndef ENCODERS
       outfile<< current_pos.x << " " <<  current_pos.y << " " << vector2dMagnitude(current_vel) << " "<< desired_velocity << " " << vel_output << " " << heading << " " << cross_track_err << " " << steer_angle << "\n";
-      #endif
 
       // ROS_INFO("Current x: %f, Current y: %f, Error:  %f, Sum: %f \n", x0, y0, error, err_sum);
 
