@@ -1,6 +1,0 @@
-vector2d waypoints[4]; // 4 
-   waypoints[0].x = -1.560f; waypoints[0].y = -1.232; 
-   waypoints[1].x = 0.0f; waypoints[1].y = -1.2f; 
-   waypoints[2].x = 0.630f; waypoints[2].y = 1.33f; 
-   waypoints[3].x = -1.6f; waypoints[3].y = .75f;
-
