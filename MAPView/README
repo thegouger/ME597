@@ -1,0 +1,22 @@
+building:
+=========
+
+This uses SFML v1.6. in order to compile you will need that
+
+http://www.sfml-dev.org/tutorials/1.6/
+^ see the 'Getting started' section
+
+editing boat model:
+===================
+
+you should only need to edit main.cpp, and maybe consts.hpp
+
+there are two sections in the main function of main.cpp that you need to edit in order to modify the included boat model. the 'setup' and 'loop' sections
+
+Use the included code as a guide. simulation of distance sensors is currently implemented.
+
+
+using:
+======
+
+Press 'a' to switch poolshape during usage.
