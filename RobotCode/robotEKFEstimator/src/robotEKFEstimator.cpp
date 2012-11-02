@@ -6,3 +6,8 @@
 #include <clearpath_horizon/Encoders.h>
 #include <fstream>
 
+
+int main()
+{
+   return 0;
+}
