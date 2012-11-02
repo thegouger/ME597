@@ -9,7 +9,7 @@
 
 const int M = ceil(Map_Length*Map_X_Resolution) ;
 const int N = ceil(Map_Width*Map_Y_Resolution) ; 
-float map[M][N];
+float Map[M][N];
 
 /* LIDAR Parameters */ // <-- These need to be updated to actual values
 const float RMax = 1;
@@ -42,22 +42,22 @@ float unlogit(float p) {
 }
 
 void initialiseMap() {
-   for (i=0, i<M; i++) {
-      for (j=0; j<N; j++) {
-         map[i][j] = LP0;
+   for (int i=0; i<M; i++) {
+      for (int j=0; j<N; j++) {
+         Map[i][j] = LP0;
       }
    }
 }
 
 void updateCell (float p,i,j) {
-   map[i][j] = p + map[i][j] - LP0;
+   Map[i][j] = p + Map[i][j] - LP0;
 }
 
 
 void updateMap(); // get x,y,theta from ekf message 
    float r,phi;
-   for (i=0, i<M; i++) {
-      for (j=0; j<N; j++) {
+   for (int i=0; i<M; i++) {
+      for (int j=0; j<N; j++) {
          r = sqrt((pow(i*Map_X_Resolution-x,2))+pow(j*Map_Y_Resolution-y,2));
          phi = (atan2(j*Map_Y_Resolution-y,i*Map_X_Resolution-x)-theta+pi) % 2*pi - pi;
 
@@ -93,7 +93,7 @@ int main() {
 
       updateMap()
 
-      // maybe publish the map somewhere
+      // maybe publish the Map somewhere
       // so others can use it too!
    }
 
