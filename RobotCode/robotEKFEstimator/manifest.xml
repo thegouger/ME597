@@ -1,0 +1,15 @@
+<package>
+   <description brief="robotEKFEstimator">
+      EKF estimator 
+   </description>
+   <author>Parth Davé</author>
+   <license>BSD</license>
+   <review status="unreviewed" notes=""/>
+   <depend package="std_msgs"/>
+   <depend package="geometry_msgs"/>
+   <depend package="roscpp"/>
+   <depend package="rospy"/>
+   <depend package="indoor_pos"/>
+   <depend package="clearpath_horizon"/>
+</package>
+
