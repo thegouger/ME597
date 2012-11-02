@@ -11,5 +11,6 @@
    <depend package="rospy"/>
    <depend package="indoor_pos"/>
    <depend package="clearpath_horizon"/>
+   <depend package="eigen3"/>
 </package>
 
