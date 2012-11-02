@@ -7,8 +7,8 @@
 #define Map_X_Resolution 0.05 // meters 
 #define Map_Y_Resolution 0.05 // meters
 
-const int M = ceil(Map_Length*Map_X_Resolution) ;
-const int N = ceil(Map_Width*Map_Y_Resolution) ; 
+const int M = Map_Length/Map_X_Resolution ;
+const int N = Map_Width/Map_Y_Resolution ; 
 float Map[M][N];
 
 /* LIDAR Parameters */ // <-- These need to be updated to actual values
