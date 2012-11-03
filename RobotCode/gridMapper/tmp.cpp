@@ -90,6 +90,10 @@ void updateMap(void) { // get x,y,theta from ekf message
     float r, phi, x, y, theta;
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
+            // Assume origin of the grid at lower bot corner
+            x = x - LOWER_BOT_CORNER.x;
+            y = y - LOWER_BOT_COERNER.y;
+            
             // range and phi to current cell
             r = sqrt((pow(i*Map_X_Resolution-x,2))+pow(j*Map_Y_Resolution-y,2));
             phi = (atan2(j*Map_Y_Resolution-y,i*Map_X_Resolution-x)-theta+PI) % 2*PI - PI;
