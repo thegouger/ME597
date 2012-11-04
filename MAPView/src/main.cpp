@@ -227,7 +227,7 @@ int main () {
    while( Window.IsOpened() ) {
       Window.Clear(BG) ;
       /* ------ Loop ------ */
-      drawMap(&Window);
+     drawMap(&Window);
       
       //y = 7.5 + amp * sin(k*rad);
       x = 5  + amp * cos(k*rad);

@@ -17,8 +17,8 @@
 
 #define Map_Length 15 // x, meters
 #define Map_Width 10  // y, meters
-#define Map_X_Resolution 0.05 // meters 
-#define Map_Y_Resolution 0.05 // meters
+#define Map_X_Resolution 0.5 // meters 
+#define Map_Y_Resolution 0.5// meters
 
 
 

@@ -15,11 +15,11 @@ struct vector2d
 };
 
 /* Corners that define our mapping boundaries */
-const vector2d LEFT_BOT_CORNER = {-100, -100};
-const vector2d RIGHT_TOP_CORNER  = {100, 100};
+const vector2d BL = {0,0};
+const vector2d TR = {5, 5};
 
-const int M = (RIGHT_TOP_CORNER.x - LEFT_BOT_CORNER.x)/Map_X_Resolution;
-const int N = (RIGHT_TOP_CORNER.y - LEFT_BOT_CORNER.y)/Map_X_Resolution;
+const int M = (TR.y - BL.y)/Map_Y_Resolution;
+const int N = (TR.x - TR.x)/Map_X_Resolution;
 
 float Map[M][N];
 
@@ -87,13 +87,13 @@ void getMinIndex(float phi) {
 }
 
 void updateMap(void) { // get x,y,theta from ekf message
-    float r, phi, x, y, theta;
+    float r, phi;
+    float iY jX ;
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
-            // Assume origin of the grid at lower bot corner
-            x = x - LOWER_BOT_CORNER.x;
-            y = y - LOWER_BOT_CORNER.y;
-            
+            iY = BL.y + Map_Y_Resolution*i;
+            jX = BL.x + Map_X_Resolution*j;
+
             // range and phi to current cell
             r = sqrt((pow(i*Map_X_Resolution-x,2))+pow(j*Map_Y_Resolution-y,2));
             phi = (atan2(j*Map_Y_Resolution-y,i*Map_X_Resolution-x)-theta+PI) % 2*PI - PI;
