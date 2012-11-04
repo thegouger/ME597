@@ -23,18 +23,18 @@ sf::Color Unknown(126,35,35);
 
 float x,y,theta;
 
-const int M = Map_Width/Map_X_Resolution;
-const int N = Map_Length/Map_Y_Resolution; 
+const int M = Map_Width/Map_Y_Resolution;
+const int N = Map_Length/Map_X_Resolution; 
 float Map[M][N];
 
-/* straight line Heuristic */
+/* Manhattan Distance Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return 0.1 * (pow(gi-i,2)+pow(gj-j,2));
+   return 0.5 * (pow(gi-i,2)+pow(gj-j,2));
 }
 
-struct Vector2i {
-   float i;
-   float j;
+struct Vector2d {
+   float x;
+   float y;
 };
 
 class State {
@@ -80,13 +80,13 @@ bool validPosition(int i, int j) {
    return true ;
 }
 
-vector<Vector2i> * findPath(float goalX,float goalY) {
+vector<Vector2d> * findPath(float goalX,float goalY) {
    int si = (y-Map_BL_y)/Map_Y_Resolution;
    int sj = (x-Map_BL_x)/Map_X_Resolution;
    int gi = (goalY-Map_BL_y)/Map_Y_Resolution;
    int gj = (goalX-Map_BL_x)/Map_X_Resolution;
    
-   vector<Vector2i> *path = new vector<Vector2i>;
+   vector<Vector2d> *path = new vector<Vector2d>;
    State *S; 
 
    std::priority_queue<State*, vector<State*>, CompareState > pq;
@@ -120,7 +120,9 @@ vector<Vector2i> * findPath(float goalX,float goalY) {
    /* Form the Path */
    if (S != NULL && S->i == gi && S->j == gj) {
       while (S != NULL) {
-         Vector2i p; p.i=S->i; p.j=S->j;
+         Vector2d p; 
+         p.x = Map_BL_x + Map_X_Resolution*S->j; 
+         p.y = Map_BL_y + Map_Y_Resolution*S->i;
          path->insert(path->begin(),p);
          S = S->parent;
       }
@@ -185,10 +187,13 @@ void drawMap(sf::RenderWindow * W) {
    
 }
 
-void drawPath(vector<Vector2i> * path, sf::RenderWindow *W) {
+void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
+   float cx, cy;
    sf::Shape Cell;
    for (int i=0; i<path->size(); i++) {
-      Cell = sf::Shape::Rectangle (X1+path->at(i).i*XPPC, Y1+path->at(i).j*YPPC, X1+(path->at(i).i+1)*XPPC, Y1+YPPC*(path->at(i).j+1),PathColor); 
+      cy = (path->at(i).x-Map_BL_x)/Map_X_Resolution;
+      cx = (path->at(i).y-Map_BL_y)/Map_Y_Resolution;
+      Cell = sf::Shape::Rectangle (X1+cx*XPPC, Y1+cy*YPPC, X1+(cx+1)*XPPC, Y1+YPPC*(cy+1),PathColor); 
       W->Draw(Cell);
    }
 }
@@ -234,7 +239,7 @@ int main () {
       k++;
 
       //*
-      vector<Vector2i> * path = findPath(0,0);
+      vector<Vector2d> * path = findPath(0,0);
       drawPath(path,&Window);
       delete path;
       //*/
