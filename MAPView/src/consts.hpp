@@ -2,12 +2,12 @@
 #define _CONSTS_HPP_
 
 #define NAME "HIAJLAK"
-//*
+
 #define LIMITFPS
 #define MAXFPS 100  
-//*/
 
 /* You Can Change These Things */
+#define USE_SFML
 
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness

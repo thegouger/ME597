@@ -1,16 +1,19 @@
-#include <SFML/Graphics.hpp>
 #include "consts.hpp"
-#include "body.hpp"
 #include <iostream>
 #include <math.h>
 #include <list>
 #include <queue>
 #include <vector>
 #include <functional>
+#ifdef USE_SFML
+   #include <SFML/Graphics.hpp>
+   #include "body.hpp"
+#endif
 
 using namespace std;
 
 /* All The Colours */
+#ifdef USE_SFML
 sf::Color RobotColor(214,246,0);
 sf::Color PathColor(255,30,32);
 
@@ -19,13 +22,34 @@ sf::Color BG(106,106,67);
 sf::Color Empty(86,105,106);
 sf::Color Full(30,30,32);
 sf::Color Unknown(126,35,35);
+#endif
 /* ^^ Colours ^^ */
 
 float x,y,theta;
 
+/* --- Mapping --- */
 const int M = Map_Width/Map_Y_Resolution;
 const int N = Map_Length/Map_X_Resolution; 
 float Map[M][N];
+
+void initialiseMap() {
+   for (int i=0; i<M; i++) {
+      for (int j=0; j<N; j++) {
+         Map[i][j] = 0.1f;
+      }
+   }
+}
+
+void fillMap(float x1, float y1, float x2, float y2) {
+   
+   for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
+      for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
+         Map[i][j] = 0.9f;
+      }
+   }
+}
+
+/* --- Path Planning --- */
 
 /* Manhattan Distance Heuristic */
 float H(int i, int j, int gi, int gj) {
@@ -49,35 +73,26 @@ class State {
    State * parent;
 };
 
-bool State::operator<(const State& right) const {
-   return f > right.f;
-}
-bool State::operator>(const State& right) const {
-   return f > right.f;
-}
-
 struct CompareState : public std::binary_function<State*, State*, bool> {
    bool operator()(const State* s1, const State* s2) const {
       return s1->f > s2->f ;
    }
 };
 
-State * generateNode(int i, int j,int gi, int gj, float g, State * parent) {
-   State * S = new State ;
-   S->i = i;
-   S->j = j;
-   g = Map[i][j] > 0.6 ? 100000+g : g;
-   S->g = g+Map[i][j];
-   S->f = g + H(i,j,gi,gj);
-   S->parent = parent;
-   return S;
-}
-
-
 bool validPosition(int i, int j) {
    if ( i < 0 || i >= M) return false;
    if ( j < 0 || j >= N) return false;
    return true ;
+}
+
+State * generateNode(int i, int j,int gi, int gj, float g, State * parent) {
+   State * S = new State ;
+   S->i = i;   S->j = j;
+   g = Map[i][j] > 0.6 ? 100000+g : g;
+   S->g = g + Map[i][j];
+   S->f = g + H(i,j,gi,gj);
+   S->parent = parent;
+   return S;
 }
 
 vector<Vector2d> * findPath(float goalX,float goalY) {
@@ -102,7 +117,7 @@ vector<Vector2d> * findPath(float goalX,float goalY) {
 
       if (S->i == gi && S->j == gj) break; // goal state
 
-      /* Add Neibours */
+      /* Add Neighbours */
       if (validPosition(S->i+1,S->j)) {
          pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
       }
@@ -139,28 +154,8 @@ vector<Vector2d> * findPath(float goalX,float goalY) {
    return path;
 }
 
-
-float unlogit(float p) {
-   return exp(p)/(1+exp(p));
-}
-
-void initialiseMap() {
-   for (int i=0; i<M; i++) {
-      for (int j=0; j<N; j++) {
-         Map[i][j] = 0.1f;
-      }
-   }
-}
-
-void fillMap(float x1, float y1, float x2, float y2) {
-   
-   for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
-      for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
-         Map[i][j] = 0.9f;
-      }
-   }
-}
-
+/* --- Graphics Related Functions --- */
+#ifdef USE_SFML
 sf::Color & colorTransform (float p) {
    sf::Color C;
    if (p > 0.6) {
@@ -197,53 +192,46 @@ void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
       W->Draw(Cell);
    }
 }
+#endif
 
-
+/* --- Main Function --- */
 int main () {
+   #ifdef USE_SFML
    sf::RenderWindow Window(sf::VideoMode(XRES,YRES,32),NAME) ;
    #ifdef LIMITFPS
       Window.SetFramerateLimit(MAXFPS) ;
    #endif
 
    /* ----- Setup ----- */
-   initialiseMap();
-   fillMap(0.5,0.5,1,1);   
-   fillMap(-1,-1,-0.5,-0.5);   
    Transform Robot;
    Robot.Rect(0,0,RW,RH,RobotColor);
    Robot.SetCenter(RCX,RCY);
-
-   x = 3; // Get These From ROS
-   y = 3;
-      Window.Clear(BG) ;
-      /* ------ Loop ------ */
-      drawMap(&Window);
+   #endif
+   initialiseMap();
+   fillMap(0.5,0.5,1,1);   
+   fillMap(-1,-1,-0.5,-0.5);   
    
-/*   for (int i=0; i<path->size(); i++) {
-      cout << path->at(i).i << ", " << path->at(i).j << "\n";
-   } */
-
-   theta = 0;
    float rad = 3.14159 /180 ; 
    int k = 180;
    float amp = 2;
    /* ------------------------ */
-   while( Window.IsOpened() ) {
-      Window.Clear(BG) ;
+   while(1) {// <-- Replace with ROS 
       /* ------ Loop ------ */
-     drawMap(&Window);
+      #ifdef USE_SFML
+      Window.Clear(BG) ;
+      drawMap(&Window);
+      #endif
       
       y = 0 + amp * sin(k*rad);
       x = 0 + amp * cos(k*rad);
-      //x = 3; y =  3; 
       k++;
 
       //*
       vector<Vector2d> * path = findPath(0,0);
-      drawPath(path,&Window);
-      delete path;
       //*/
 
+      #ifdef USE_SFML
+      drawPath(path,&Window);
       Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
       Robot.SetGRotation(theta);
       Robot.Draw(&Window);
@@ -258,6 +246,12 @@ int main () {
             //?
          }
       }   
+      #endif
+      delete path;
    }
+   #ifdef USE_SFML
    return EXIT_SUCCESS ; 
+   #else 
+   return 0;
+   #endif
 }
