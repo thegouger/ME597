@@ -29,8 +29,7 @@ float Map[M][N];
 
 /* straight line Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return (pow(gi-i,2)+pow(gj-j,2));
-   return 0 ; 
+   return 0.1 * (pow(gi-i,2)+pow(gj-j,2));
 }
 
 struct Vector2i {
@@ -67,7 +66,8 @@ State * generateNode(int i, int j,int gi, int gj, float g, State * parent) {
    State * S = new State ;
    S->i = i;
    S->j = j;
-   S->g = g;
+   g = Map[i][j] > 0.6 ? 100000+g : g;
+   S->g = g+Map[i][j];
    S->f = g + H(i,j,gi,gj);
    S->parent = parent;
    return S;
@@ -104,16 +104,16 @@ vector<Vector2i> * findPath(float goalX,float goalY) {
 
       /* Add Neibours */
       if (validPosition(S->i+1,S->j)) {
-         pq.push(generateNode(S->i+1,S->j,gi,gj,S->g+1,S));
+         pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
       }
       if (validPosition(S->i-1,S->j)) {
-         pq.push(generateNode(S->i-1,S->j,gi,gj,S->g+1,S));
+         pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
       }
       if (validPosition(S->i,S->j+1)) {
-         pq.push(generateNode(S->i,S->j+1,gi,gj,S->g+1,S));
+         pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
       }
       if (validPosition(S->i,S->j-1)) {
-         pq.push(generateNode(S->i,S->j-1,gi,gj,S->g+1,S));
+         pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
       }
    }
 
@@ -138,8 +138,6 @@ vector<Vector2i> * findPath(float goalX,float goalY) {
 }
 
 
-
-
 float unlogit(float p) {
    return exp(p)/(1+exp(p));
 }
@@ -152,14 +150,11 @@ void initialiseMap() {
    }
 }
 
-void fillMap() {
-   for (int i=0; i<M; i++) {
-      for (int j=0; j<N; j++) {
-        if (j % 15 > 10 ) {
-            Map[i][j] = 0.1f;
-         } else if (j % 15 > 5) {
-            Map[i][j] = 0.9f;
-         }
+void fillMap(float x1, float y1, float x2, float y2) {
+   
+   for (int i=y1/Map_Y_Resolution; i<y2/Map_Y_Resolution; i++) {
+      for (int j=x1/Map_X_Resolution; j<x2/Map_X_Resolution; j++) {
+         Map[i][j] = 0.9f;
       }
    }
 }
@@ -207,7 +202,9 @@ int main () {
 
    /* ----- Setup ----- */
    initialiseMap();
-//   fillMap();   
+   fillMap(5,8,6,12);   
+   //fillMap(1,6,10,7);   
+   fillMap(1,8,6,10);   
    Transform Robot;
    Robot.Rect(0,0,RW,RH,RobotColor);
    Robot.SetCenter(RCX,RCY);
@@ -230,18 +227,18 @@ int main () {
    while( Window.IsOpened() ) {
       Window.Clear(BG) ;
       /* ------ Loop ------ */
-      //drawMap(&Window);
+      drawMap(&Window);
       
-      y = 7.5 + amp * sin(k*rad);
+      //y = 7.5 + amp * sin(k*rad);
       x = 5  + amp * cos(k*rad);
-      //x = 6; y = 6; 
+      //x = 8; y =  1; 
       k++;
 
       Robot.SetGPosition(X1+PPM*y,Y1+PPM*x);
       Robot.SetGRotation(theta);
       Robot.Draw(&Window);
       //*
-      vector<Vector2i> * path = findPath(5,7.5);
+      vector<Vector2i> * path = findPath(1,14);
       drawPath(path,&Window);
       delete path;
       //*/
