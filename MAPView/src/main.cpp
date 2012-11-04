@@ -11,7 +11,7 @@
 using namespace std;
 
 /* All The Colours */
-sf::Color RobotColor(32,32,32);
+sf::Color RobotColor(214,246,0);
 sf::Color PathColor(255,30,32);
 
 sf::Color Border(32,32,32);
@@ -152,8 +152,8 @@ void initialiseMap() {
 
 void fillMap(float x1, float y1, float x2, float y2) {
    
-   for (int i=y1/Map_Y_Resolution; i<y2/Map_Y_Resolution; i++) {
-      for (int j=x1/Map_X_Resolution; j<x2/Map_X_Resolution; j++) {
+   for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
+      for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
          Map[i][j] = 0.9f;
       }
    }
@@ -202,9 +202,8 @@ int main () {
 
    /* ----- Setup ----- */
    initialiseMap();
-   //fillMap(5,8,6,12);   
-   //fillMap(1,6,10,7);   
-   //fillMap(1,8,6,10);   
+   fillMap(0.5,0.5,1,1);   
+   fillMap(-1,-1,-0.5,-0.5);   
    Transform Robot;
    Robot.Rect(0,0,RW,RH,RobotColor);
    Robot.SetCenter(RCX,RCY);
@@ -234,14 +233,15 @@ int main () {
       //x = 3; y =  3; 
       k++;
 
-      Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
-      Robot.SetGRotation(theta);
-      Robot.Draw(&Window);
       //*
       vector<Vector2i> * path = findPath(0,0);
       drawPath(path,&Window);
       delete path;
       //*/
+
+      Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
+      Robot.SetGRotation(theta);
+      Robot.Draw(&Window);
       /* ------------------------ */
       Window.Display() ;
       sf::Event Event;

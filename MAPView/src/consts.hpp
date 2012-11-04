@@ -9,20 +9,20 @@
 
 /* You Can Change These Things */
 
-#define PPM 50 // Pixels per Meter
+#define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
 
 #define RobotLength 0.30 // meters
-#define RobotWidth 0.1  // meters
+#define RobotWidth 0.2  // meters
 
 // Defines the Reign of Space 
-#define Map_BL_x -10 // X, meters
-#define Map_BL_y -10 // Y, meters
-#define Map_TR_x 10 // X, meters
-#define Map_TR_y 15 // Y, meters
+#define Map_BL_x -2.5 // X, meters
+#define Map_BL_y -2.5 // Y, meters
+#define Map_TR_x 2.5 // X, meters
+#define Map_TR_y 2.5 // Y, meters
         
-#define Map_X_Resolution 0.5 // meters/cell
-#define Map_Y_Resolution 0.5// meters/cell
+#define Map_X_Resolution 0.2 // meters/cell
+#define Map_Y_Resolution 0.2// meters/cell
 
 /* DONT CHANGE THESE THINGS */
 
@@ -32,8 +32,8 @@
 #define MW Map_Width*PPM // Pool Width
 #define MH Map_Length*PPM // Pool Height 
 
-#define XPPC MW / (Map_Length/Map_Y_Resolution ) 
-#define YPPC MH / (Map_Width/Map_X_Resolution ) 
+#define XPPC MW / (Map_Width/Map_Y_Resolution ) 
+#define YPPC MH / (Map_Length/Map_X_Resolution ) 
 
 #define RH PPM*RobotLength // Boat Height
 #define RW PPM*RobotWidth  // Boat Width
