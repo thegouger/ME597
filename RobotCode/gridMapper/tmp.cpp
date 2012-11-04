@@ -1,4 +1,5 @@
 #include <math.h>
+#include "sensor_msgs/LaserScan.h"
 
 // Ensure that map's res is high enough so that discretization is trivial
 #define Map_X_Resolution 0.05 // meters
@@ -15,11 +16,11 @@ struct vector2d
 };
 
 /* Corners that define our mapping boundaries */
-const vector2d LEFT_BOT_CORNER = {-100, -100};
-const vector2d RIGHT_TOP_CORNER  = {100, 100};
+const vector2d BL = {0,0};
+const vector2d TR = {5, 5};
 
-const int M = (RIGHT_TOP_CORNER.x - LEFT_BOT_CORNER.x)/Map_X_Resolution;
-const int N = (RIGHT_TOP_CORNER.y - LEFT_BOT_CORNER.y)/Map_X_Resolution;
+const int M = (TR.y - BL.y)/Map_Y_Resolution;
+const int N = (TR.x - TR.x)/Map_X_Resolution;
 
 float Map[M][N];
 
@@ -27,14 +28,15 @@ float Map[M][N];
 const float RMax = 1;
 const float RMin = 0;
 const float AngMax = PI/2;
-const float AngMin = PI/2;
+const float AngMin = -PI/2;
 const float AngRes = PI/180;
 
 const float Beta = 0.05;  // degrees
 const float Alpha = .1;   // m
+const int numRanges = int((AngMax - AngMin)/AngRes);
 
 // Var to put the Range data in
-// float ranges[int((AngMax - AngMin)/AngRes)]
+float ranges[numRanges];
 
 /* Set Probibilites */
 const float P0 = 0.5;
@@ -62,6 +64,20 @@ void updateCell (float p,i,j) {
     Map[i][j] = p + Map[i][j] - LP0;
 }
 
+void laserScannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
+{
+    /* The number of scans shouldn't vary*/
+    if (msg.ranges.size() != numRanges) {
+        ROS_ERROR("Assumed number of scans not the same. Assumed %d, got %d", 
+                    numRanges, msg.ranges.size());
+    } else {
+        for(uint i = 0; i < msg.ranges.size(); i++){
+            ranges[i] = msg.ranges[i];
+        }
+        updateMap();
+    }
+}
+
 /* Try to get the index of the measurement at which the angle
    between the laser scan and the cell-robot vector is minimal.
    Assume meas_r is structured siuch that k = 0 => meas at AngMin
@@ -87,16 +103,16 @@ void getMinIndex(float phi) {
 }
 
 void updateMap(void) { // get x,y,theta from ekf message
-    float r, phi, x, y, theta;
+    float r, phi;
+    float cx, cy ;
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
-            // Assume origin of the grid at lower bot corner
-            x = x - LOWER_BOT_CORNER.x;
-            y = y - LOWER_BOT_CORNER.y;
-            
+            cy = BL.y + Map_Y_Resolution*i;
+            cx = BL.x + Map_X_Resolution*j;
+
             // range and phi to current cell
-            r = sqrt((pow(i*Map_X_Resolution-x,2))+pow(j*Map_Y_Resolution-y,2));
-            phi = (atan2(j*Map_Y_Resolution-y,i*Map_X_Resolution-x)-theta+PI) % 2*PI - PI;
+            r = sqrt((pow(cx - x, 2)) + pow(cy - y, 2));
+            phi = atan2(cy - y, cx - x) - theta;
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
@@ -124,18 +140,13 @@ void updateMap(void) { // get x,y,theta from ekf message
 
 int main() {
 
-    do_ROS_Stuff ()
-
-        initialiseMap();
+    initialiseMap();
+    ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , 
+							laserScannerCallback);
 
     while (ROSS::OK()){
-        //everytime you get a new lidar measurment,
-        // get current position
-
-        updateMap()
-
-            // maybe publish the Map somewhere
-            // so others can use it too!
+        // maybe publish the Map somewhere
+        // so others can use it too!
     }
 
     return 0 ;
