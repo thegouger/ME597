@@ -15,13 +15,13 @@ using namespace std;
 /* All The Colours */
 #ifdef USE_SFML
 sf::Color RobotColor(214,246,0);
-sf::Color PathColor(255,30,32);
+sf::Color PathColor(100,150,256);
 
 sf::Color Border(32,32,32);
 sf::Color BG(106,106,67);
 sf::Color Empty(86,105,106);
-sf::Color Full(30,30,32);
-sf::Color Unknown(126,35,35);
+sf::Color Full(126,30,32);
+sf::Color Unknown(60,60,60);
 #endif
 /* ^^ Colours ^^ */
 
@@ -67,6 +67,7 @@ void initialiseMap() {
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
             Map[i][j] = LP0;
+            Map[i][j] = PLow+i*(PHigh-PLow)/M;
         }
     }
 }
@@ -269,15 +270,26 @@ vector<Vector2d> * findPath(float goalX,float goalY) {
 
 /* --- Graphics Related Functions --- */
 #ifdef USE_SFML
-sf::Color & colorTransform (float p) {
-   sf::Color C;
-   if (p > 0.6) {
-      return Full;
+void  colorTransform (float p,sf::Color & C) {
+   if (p > PHigh) {
+      C = Full;
    }
-   else if (p < 0.4) {
-      return Empty;
+   else if (p > P0) {
+      C.r = (Full.r-Unknown.r)/(PHigh-P0)*(p-P0)+Unknown.r;
+      C.g = (Full.g-Unknown.g)/(PHigh-P0)*(p-P0)+Unknown.g;
+      C.b = (Full.b-Unknown.b)/(PHigh-P0)*(p-P0)+Unknown.b;
    }
-   return Unknown;
+   else if (p == P0) {
+      C = Unknown;
+   }
+   else if (p < P0) {
+      C.r = -(Empty.r-Unknown.r)/(P0-PLow)*(p-PLow)+Empty.r;
+      C.g = -(Empty.g-Unknown.g)/(P0-PLow)*(p-PLow)+Empty.g;
+      C.b = -(Empty.b-Unknown.b)/(P0-PLow)*(p-PLow)+Empty.b;
+   }
+   else {
+      C = Empty; 
+   }
 }
 
 /* Here is where we draw the map */
@@ -287,7 +299,7 @@ void drawMap(sf::RenderWindow * W) {
    W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT,X2+WT,Y2+WT,Border));
    for (int i=0; i<M; i++) {
       for (int j=0; j<N; j++) {
-         C = colorTransform(Map[i][j]);
+         colorTransform(Map[i][j],C);
          Cell = sf::Shape::Rectangle (X1+i*XPPC, Y1+j*YPPC, X1+(i+1)*XPPC, Y1+YPPC*(j+1),C); 
          W->Draw(Cell);
       }
@@ -316,7 +328,6 @@ int main () {
    #endif
 
    #ifdef USE_ROS
-   initialiseMap();
    ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , 
                        laserScannerCallback);
    #endif
@@ -350,7 +361,7 @@ int main () {
       //*/
 
       #ifdef USE_SFML
-      drawPath(path,&Window);
+     drawPath(path,&Window);
       Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
       Robot.SetGRotation(theta);
       Robot.Draw(&Window);
