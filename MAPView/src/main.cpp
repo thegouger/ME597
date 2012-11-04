@@ -23,8 +23,8 @@ sf::Color Unknown(126,35,35);
 
 float x,y,theta;
 
-const int M = Map_Length/Map_X_Resolution;
-const int N = Map_Width/Map_Y_Resolution; 
+const int M = Map_Width/Map_X_Resolution;
+const int N = Map_Length/Map_Y_Resolution; 
 float Map[M][N];
 
 /* straight line Heuristic */
@@ -81,10 +81,10 @@ bool validPosition(int i, int j) {
 }
 
 vector<Vector2i> * findPath(float goalX,float goalY) {
-   int si = (y-0)/Map_Y_Resolution;
-   int sj = (x-0)/Map_X_Resolution;
-   int gi = (goalY-0)/Map_Y_Resolution;
-   int gj = (goalX-0)/Map_X_Resolution;
+   int si = (y-Map_BL_y)/Map_Y_Resolution;
+   int sj = (x-Map_BL_x)/Map_X_Resolution;
+   int gi = (goalY-Map_BL_y)/Map_Y_Resolution;
+   int gj = (goalX-Map_BL_x)/Map_X_Resolution;
    
    vector<Vector2i> *path = new vector<Vector2i>;
    State *S; 
@@ -202,9 +202,9 @@ int main () {
 
    /* ----- Setup ----- */
    initialiseMap();
-   fillMap(5,8,6,12);   
+   //fillMap(5,8,6,12);   
    //fillMap(1,6,10,7);   
-   fillMap(1,8,6,10);   
+   //fillMap(1,8,6,10);   
    Transform Robot;
    Robot.Rect(0,0,RW,RH,RobotColor);
    Robot.SetCenter(RCX,RCY);
@@ -229,16 +229,16 @@ int main () {
       /* ------ Loop ------ */
      drawMap(&Window);
       
-      //y = 7.5 + amp * sin(k*rad);
-      x = 5  + amp * cos(k*rad);
-      //x = 8; y =  1; 
+      y = 0 + amp * sin(k*rad);
+      x = 0 + amp * cos(k*rad);
+      //x = 3; y =  3; 
       k++;
 
-      Robot.SetGPosition(X1+PPM*y,Y1+PPM*x);
+      Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
       Robot.SetGRotation(theta);
       Robot.Draw(&Window);
       //*
-      vector<Vector2i> * path = findPath(1,14);
+      vector<Vector2i> * path = findPath(0,0);
       drawPath(path,&Window);
       delete path;
       //*/

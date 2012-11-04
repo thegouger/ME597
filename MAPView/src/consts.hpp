@@ -15,28 +15,33 @@
 #define RobotLength 0.30 // meters
 #define RobotWidth 0.1  // meters
 
-#define Map_Length 15 // x, meters
-#define Map_Width 10  // y, meters
-#define Map_X_Resolution 0.5 // meters 
-#define Map_Y_Resolution 0.5// meters
-
-
+// Defines the Reign of Space 
+#define Map_BL_x -10 // X, meters
+#define Map_BL_y -10 // Y, meters
+#define Map_TR_x 10 // X, meters
+#define Map_TR_y 15 // Y, meters
+        
+#define Map_X_Resolution 0.5 // meters/cell
+#define Map_Y_Resolution 0.5// meters/cell
 
 /* DONT CHANGE THESE THINGS */
 
-#define MW Map_Length*PPM // Pool Width
-#define MH Map_Width*PPM // Pool Height 
+#define Map_Length ( Map_TR_x - Map_BL_x )
+#define Map_Width ( Map_TR_y - Map_BL_y )
 
-#define XPPC MW / (Map_Length/Map_X_Resolution ) 
-#define YPPC MH / (Map_Width/Map_Y_Resolution ) 
+#define MW Map_Width*PPM // Pool Width
+#define MH Map_Length*PPM // Pool Height 
+
+#define XPPC MW / (Map_Length/Map_Y_Resolution ) 
+#define YPPC MH / (Map_Width/Map_X_Resolution ) 
 
 #define RH PPM*RobotLength // Boat Height
 #define RW PPM*RobotWidth  // Boat Width
 #define RCX RW/2.0 // Boat kinematic centre X corodinate 
 #define RCY RH-10 // Boat kinematic centre Y corodinate 
 
-#define XRES Map_Length*PPM+2*WT+100
-#define YRES Map_Width*PPM+2*WT+100
+#define XRES Map_Width*PPM+2*WT+100
+#define YRES Map_Length*PPM+2*WT+100
 
 #define   X1 (XRES-MW)/2
 #define   X2 (XRES+MW)/2

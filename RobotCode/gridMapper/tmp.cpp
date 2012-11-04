@@ -1,4 +1,5 @@
 #include <math.h>
+#include "sensor_msgs/LaserScan.h"
 
 // Ensure that map's res is high enough so that discretization is trivial
 #define Map_X_Resolution 0.05 // meters
@@ -27,14 +28,15 @@ float Map[M][N];
 const float RMax = 1;
 const float RMin = 0;
 const float AngMax = PI/2;
-const float AngMin = PI/2;
+const float AngMin = -PI/2;
 const float AngRes = PI/180;
 
 const float Beta = 0.05;  // degrees
 const float Alpha = .1;   // m
+const int numRanges = int((AngMax - AngMin)/AngRes);
 
 // Var to put the Range data in
-// float ranges[int((AngMax - AngMin)/AngRes)]
+float ranges[numRanges];
 
 /* Set Probibilites */
 const float P0 = 0.5;
@@ -60,6 +62,20 @@ void initialiseMap() {
 
 void updateCell (float p,i,j) {
     Map[i][j] = p + Map[i][j] - LP0;
+}
+
+void laserScannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
+{
+    /* The number of scans shouldn't vary*/
+    if (msg.ranges.size() != numRanges) {
+        ROS_ERROR("Assumed number of scans not the same. Assumed %d, got %d", 
+                    numRanges, msg.ranges.size());
+    } else {
+        for(uint i = 0; i < msg.ranges.size(); i++){
+            ranges[i] = msg.ranges[i];
+        }
+        updateMap();
+    }
 }
 
 /* Try to get the index of the measurement at which the angle
@@ -88,15 +104,20 @@ void getMinIndex(float phi) {
 
 void updateMap(void) { // get x,y,theta from ekf message
     float r, phi;
-    float iY jX ;
+    float cx, cy ;
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
-            iY = BL.y + Map_Y_Resolution*i;
-            jX = BL.x + Map_X_Resolution*j;
+            cy = BL.y + Map_Y_Resolution*i;
+            cx = BL.x + Map_X_Resolution*j;
 
             // range and phi to current cell
+<<<<<<< HEAD
             r = sqrt((pow(iY-y,2))+pow(jX-x,2));
             phi = (atan2(jX-y,iY-x)-theta+PI) % 2*PI - PI;
+=======
+            r = sqrt((pow(cx - x, 2)) + pow(cy - y, 2));
+            phi = atan2(cy - y, cx - x) - theta;
+>>>>>>> 710219939af028e6f9df8796a1f0f2fa59319702
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
@@ -124,18 +145,13 @@ void updateMap(void) { // get x,y,theta from ekf message
 
 int main() {
 
-    do_ROS_Stuff ()
-
-        initialiseMap();
+    initialiseMap();
+    ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , 
+							laserScannerCallback);
 
     while (ROSS::OK()){
-        //everytime you get a new lidar measurment,
-        // get current position
-
-        updateMap()
-
-            // maybe publish the Map somewhere
-            // so others can use it too!
+        // maybe publish the Map somewhere
+        // so others can use it too!
     }
 
     return 0 ;
