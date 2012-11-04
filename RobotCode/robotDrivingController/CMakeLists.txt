@@ -28,3 +28,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(robotDrivingController src/robotDrivingController.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
+
+#eigen
+find_package(Eigen REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
