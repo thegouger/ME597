@@ -84,7 +84,7 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
    mu_p(1) = mu(1) + current_velocity*sin(mu(2))*dt;
-   mu_p(2) = mu(2) + (current_velocity*tan(.349*0.70)*dt)/L;
+   mu_p(2) = mu(2) + (current_velocity*tan(.349*0.73)*dt)/L;
    if(mu_p(2) > 2*3.14159)        mu_p(2) -= 2*3.14159;
    else if(mu_p(2) < - 2*3.14159) mu_p(2) += 2*3.14159; 
 
