@@ -22,8 +22,8 @@
 #define Map_TR_x 2.5 // X, meters
 #define Map_TR_y 2.5 // Y, meters
         
-#define Map_X_Resolution 0.2 // meters/cell
-#define Map_Y_Resolution 0.2// meters/cell
+#define Map_X_Resolution 0.1 // meters/cell
+#define Map_Y_Resolution 0.1// meters/cell
 
 /* DONT CHANGE THESE THINGS */
 
