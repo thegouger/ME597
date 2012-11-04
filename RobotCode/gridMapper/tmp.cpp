@@ -95,8 +95,8 @@ void updateMap(void) { // get x,y,theta from ekf message
             jX = BL.x + Map_X_Resolution*j;
 
             // range and phi to current cell
-            r = sqrt((pow(i*Map_X_Resolution-x,2))+pow(j*Map_Y_Resolution-y,2));
-            phi = (atan2(j*Map_Y_Resolution-y,i*Map_X_Resolution-x)-theta+PI) % 2*PI - PI;
+            r = sqrt((pow(iY-y,2))+pow(jX-x,2));
+            phi = (atan2(jX-y,iY-x)-theta+PI) % 2*PI - PI;
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
