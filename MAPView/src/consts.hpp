@@ -8,6 +8,7 @@
 
 /* You Can Change These Things */
 #define USE_SFML
+//#define USE_ROS
 
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
