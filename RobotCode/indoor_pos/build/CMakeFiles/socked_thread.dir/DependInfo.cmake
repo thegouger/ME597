@@ -4,7 +4,7 @@ SET(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
-  "/home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/src/SocketThread.cpp" "/home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build/CMakeFiles/socked_thread.dir/src/SocketThread.o"
+  "/home/mitch/me597/ME597/RobotCode/indoor_pos/src/SocketThread.cpp" "/home/mitch/me597/ME597/RobotCode/indoor_pos/build/CMakeFiles/socked_thread.dir/src/SocketThread.o"
   )
 SET(CMAKE_CXX_COMPILER_ID "GNU")
 

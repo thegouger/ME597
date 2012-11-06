@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+   <node pkg="gridMapper" type="gridMapper" name="gridMapper" output="screen">
+      <param name="enable_steering" value = "0" />
+   </node>
+</launch>
+

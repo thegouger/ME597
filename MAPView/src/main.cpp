@@ -158,7 +158,7 @@ void fillMap(float x1, float y1, float x2, float y2) {
    
    for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
       for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
-         Map[i][j] = 0.9f;
+         Map[i][j] = LPHigh;
       }
    }
 }

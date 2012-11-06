@@ -32,10 +32,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos
+CMAKE_SOURCE_DIR = /home/mitch/me597/ME597/RobotCode/indoor_pos
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build
+CMAKE_BINARY_DIR = /home/mitch/me597/ME597/RobotCode/indoor_pos/build
 
 # Utility rule file for test-future.
 
@@ -57,6 +57,6 @@ CMakeFiles/test-future.dir/clean:
 .PHONY : CMakeFiles/test-future.dir/clean
 
 CMakeFiles/test-future.dir/depend:
-	cd /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build /home/wavelab/TeamAwesome/ME597/RobotCode/indoor_pos/build/CMakeFiles/test-future.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/mitch/me597/ME597/RobotCode/indoor_pos/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/mitch/me597/ME597/RobotCode/indoor_pos /home/mitch/me597/ME597/RobotCode/indoor_pos /home/mitch/me597/ME597/RobotCode/indoor_pos/build /home/mitch/me597/ME597/RobotCode/indoor_pos/build /home/mitch/me597/ME597/RobotCode/indoor_pos/build/CMakeFiles/test-future.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/test-future.dir/depend
 
