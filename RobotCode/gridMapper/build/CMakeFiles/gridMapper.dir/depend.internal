@@ -65,3 +65,8 @@ CMakeFiles/gridMapper.dir/src/gridMapper.o
  /opt/ros/fuerte/include/ros/wall_timer.h
  /opt/ros/fuerte/include/ros/wall_timer_options.h
  /opt/ros/fuerte/include/rosconsole/macros_generated.h
+ /opt/ros/fuerte/include/sensor_msgs/LaserScan.h
+ /opt/ros/fuerte/include/std_msgs/Float32MultiArray.h
+ /opt/ros/fuerte/include/std_msgs/Header.h
+ /opt/ros/fuerte/include/std_msgs/MultiArrayDimension.h
+ /opt/ros/fuerte/include/std_msgs/MultiArrayLayout.h

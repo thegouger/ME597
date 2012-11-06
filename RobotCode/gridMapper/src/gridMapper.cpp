@@ -13,6 +13,7 @@
    #include <ros/ros.h>
    #include <geometry_msgs/Twist.h>
    #include <sensor_msgs/LaserScan.h>
+   #include <std_msgs/Float32MultiArray.h>
 #endif
 
 using namespace std;
@@ -26,7 +27,7 @@ sf::Color Border(32,32,32);
 sf::Color BG(106,106,67);
 sf::Color Empty(86,105,106);
 sf::Color Full(126,30,32);
-sf::Color Unknown(60,60,60);
+sf::Color Unknown(32,32,32);
 #endif
 /* ^^ Colours ^^ */
 
@@ -45,18 +46,18 @@ const int N = Map_Length/Map_X_Resolution;
 float Map[M][N];
 
 /* LIDAR Parameters */ // <-- These need to be updated to actual values
-const float RMax = 1;
-const float RMin = 0;
-const float AngMax = PI/2;
-const float AngMin = -PI/2;
-const float AngRes = PI/180;
+float RMax = 1;
+float RMin = 0;
+float AngMax = PI/2;
+float AngMin = -PI/2;
+float AngRes = PI/180;
 
 const float Beta = 0.05;  // degrees
 const float Alpha = .1;   // m
-const int numRanges = int((AngMax - AngMin)/AngRes);
+const int numRanges = (int)((AngMax - AngMin)/AngRes);
 
 // Var to put the Range data in
-//float ranges[numRanges];
+std::vector<float> ranges;
 
 /* Set Probibilites */
 const float P0 = 0.5;
@@ -74,7 +75,7 @@ void initialiseMap() {
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
             Map[i][j] = LP0;
-            Map[i][j] = PLow+i*(PHigh-PLow)/M;
+            //Map[i][j] = PLow+i*(PHigh-PLow)/M;
         }
     }
 }
@@ -84,23 +85,23 @@ void updateCell (float p,int i,int j) {
 }
 
 #ifdef USE_ROS
-/*
+
 void laserScannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-    // The number of scans shouldn't vary
-    if (msg.ranges.size() != numRanges) {
-        ROS_ERROR("Assumed number of scans not the same. Assumed %d, got %d", 
-                    numRanges, msg.ranges.size());
-    } else {
-        for(uint i = 0; i < msg.ranges.size(); i++){
-            ranges[i] = msg.ranges[i];
-        }
-        updateMap();
-    }
+    ranges = msg->ranges;
+    AngMax = msg->angle_max;
+    AngMin = msg->angle_min;
+    RMax = msg->range_max;
+    RMin = msg->range_min;
+    AngRes = msg->angle_increment;
+    updateMap();
 }
-*/
-void stateCallback();
 
+void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
+   x = msg->linear.x;
+   y = msg->linear.y;
+   theta = msg->angular.z;
+}
 #endif
 
 /* Try to get the index of the measurement at which the angle
@@ -282,6 +283,7 @@ vector<Vector2d> * findPath(float goalX,float goalY) {
 /* --- Graphics Related Functions --- */
 #ifdef USE_SFML
 void  colorTransform (float p,sf::Color & C) {
+   p  = UNLOGIT(p);
    if (p > PHigh) {
       C = Full;
    }
@@ -344,9 +346,11 @@ int main (int argc, char* argv[]) {
 
    ros::NodeHandle nodeHandle;
 
-   //ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , laserScannerCallback);
-   //ros::Subscriber state_sub = nodeHandle.subscrube("estimate",1,stateCallback);
-   //ros::Publisher path_pub = nodeHandle.advertise<vector<Vector2d> >("path", 1);
+   std_msgs::Float32MultiArray Path ;
+
+   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , laserScannerCallback);
+   ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
+   ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
 
    #endif
 
@@ -356,12 +360,9 @@ int main (int argc, char* argv[]) {
    Robot.SetCenter(RCX,RCY);
    #endif
    initialiseMap();
-   fillMap(0.5,0.5,1,1);   
-   fillMap(-1,-1,-0.5,-0.5);   
+   //fillMap(0.5,0.5,1,1);   
+   //fillMap(-1,-1,-0.5,-0.5);   
    
-   float rad = 3.14159 /180 ; 
-   int k = 180;
-   float amp = 2;
    /* ------------------------ */
 #ifdef USE_ROS
    while(ros::ok()) {// <-- Replace with ROS 
@@ -375,15 +376,11 @@ int main (int argc, char* argv[]) {
       drawMap(&Window);
       #endif
       
-      y = 0 + amp * sin(k*rad);
-      x = 0 + amp * cos(k*rad);
-      k++;
-
       //*
       vector<Vector2d> * path = findPath(0,0);
       //*/
       #ifdef USE_ROS
-      //path_pub.publish(*path);
+      path_pub.publish(Path);
       #endif
 
       #ifdef USE_SFML
