@@ -3,6 +3,7 @@
 #include <math.h>
 #include <list>
 #include <queue>
+#include <fstream> 
 #include <vector>
 #include <functional>
 #ifdef USE_SFML
@@ -11,6 +12,7 @@
 #endif
 #ifdef USE_ROS
    #include <ros/ros.h>
+   #include <indoor_pos/ips_msg.h>
    #include <geometry_msgs/Twist.h>
    #include <sensor_msgs/LaserScan.h>
    #include <std_msgs/Float32MultiArray.h>
@@ -32,6 +34,9 @@ sf::Color Unknown(32,32,32);
 /* ^^ Colours ^^ */
 
 void updateMap();
+
+/* control flags */
+bool update_map;
 
 /* node infos */
 float x,y,theta;
@@ -69,7 +74,29 @@ const float LPHigh = LOGIT(PHigh);
 const float PLow = 0.3;
 const float LPLow = LOGIT(PLow);
 
+void loadMap() {
+   ifstream infile;
+   infile.open("MapLoad");
+   update_map = false; 
+    for (int i=0; i<M; i++) {
+        for (int j=1; j<N; j++) {
+            infile >> Map[i][j];
+            Map[i][j] = LOGIT(Map[i][j]);
+        }
+    }
+}
 
+void saveMap() {
+   ofstream outfile;
+   outfile.open("MapSave");
+    for (int i=0; i<M; i++) {
+        outfile << UNLOGIT(Map[i][0]);
+        for (int j=1; j<N; j++) {
+            outfile <<" "<< UNLOGIT(Map[i][j]);
+        }
+        outfile << endl;
+    }
+}
 
 void initialiseMap() {
     for (int i=0; i<M; i++) {
@@ -102,11 +129,16 @@ void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) {
    y = msg->linear.y;
    theta = msg->angular.z;
 }
+void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
+   x = msg->X;
+   y = msg->Y;
+   theta = PI*msg->Yaw/180-PI ;
+}
 #endif
 
 /* Try to get the index of the measurement at which the angle
    between the laser scan and the cell-robot vector is minimal.
-   Assume meas_r is structured siuch that k = 0 => meas at AngMin
+   Assume ranges is structured siuch that k = 0 => meas at AngMin
    Use a boundary of Beta/2 for discarding outlier angles
    */
 int getMinIndex(float phi) {
@@ -115,7 +147,7 @@ int getMinIndex(float phi) {
         return -1;
 
     // phi = AngMin + k * AngRes
-    int k = ceil((phi - AngMin)/AngRes);
+    int k = floor((phi - AngMin)/AngRes);
 
     // Check k+1 to see if discretizing pushed us one before
     if (fabs(phi - AngMin - k * AngRes) > fabs(phi - AngMin - (k + 1) * AngRes))
@@ -129,10 +161,10 @@ int getMinIndex(float phi) {
 }
 
 void updateMap(void) { // get x,y,theta from ekf message
+    if ( !update_map ) return;
     float p;
     float r, phi;
     float cx, cy ;
-    float meas_r[100]; // <--Only here so it will compile
     for (int i=0; i<M; i++) {
         for (int j=0; j<N; j++) {
             cy = Map_BL_y + Map_Y_Resolution*i;
@@ -140,25 +172,34 @@ void updateMap(void) { // get x,y,theta from ekf message
 
             // range and phi to current cell
             r = sqrt((pow(cx - x, 2)) + pow(cy - y, 2));
-            phi = atan2(cy - y, cx - x) - theta;
+            phi = atan2(cy - y, cx - x) - theta  ;
+            phi = fmod(atan2(cy - y, cx - x) - theta+PI,2*PI)-PI;
+
+            phi = acos( ((cy-y)*sin(theta) + (cx-x)*cos(theta))/sqrt(pow(cx-x,2)+pow(cy-y,2)) );
+            phi *= (cy-y)*cos(theta) - (cx-x)*sin(theta) > 0 ? 1 : -1 ; 
+
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
 
+            p=LP0;
             // If outside measured angles
             if (k == -1) {
                 p = LP0;
             }
+            else if (r < RMax && ranges[k] < RMin ){
+               p = LPLow;
+            }
             // If outside field of view of the scan range
-            else if (r > fmin(RMax, meas_r[k]+Alpha/2)) {
+            else if (r > fmin(RMax, ranges[k]+Alpha/2)) {
                 p = LP0;
             }
             // If the range measurement was in this cell, likely to be an object
-            else if ((meas_r[k]< RMax) && (fabs(r-meas_r[k])<Alpha/2)) {
+            else if ((ranges[k]< RMax) && (fabs(r-ranges[k])<Alpha/2)) {
                 p = LPHigh;
             }
             // If the cell is in front of the range measurement, likely to be empty
-            else if (r < meas_r[k]) {
+            else if (r <= fmin(RMax,ranges[k])) {
                 p = LPLow;
             }
             updateCell(p,i,j);
@@ -208,6 +249,7 @@ struct CompareState : public std::binary_function<State*, State*, bool> {
 bool validPosition(int i, int j) {
    if ( i < 0 || i >= M) return false;
    if ( j < 0 || j >= N) return false;
+   if (Map[i][j] > LP0) return false; 
    return true ;
 }
 
@@ -236,7 +278,12 @@ vector<Vector2d> * findPath(float goalX,float goalY) {
    pq.push(generateNode(si,sj,gi,gj,0,NULL));
 
    /* Search for the goal Sate */
+   int count = 0 ;
    while ( !pq.empty() ) {
+      count++;
+      if (count > 1000000) {
+         return NULL;
+      }
       S = pq.top();
       pq.pop();
       freeList.push_front(S);
@@ -349,19 +396,30 @@ int main (int argc, char* argv[]) {
    std_msgs::Float32MultiArray Path ;
 
    ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , laserScannerCallback);
-   ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
+   ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
+   //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
 
    #endif
 
    /* ----- Setup ----- */
-   Transform Robot;
+   update_map = true;
+   bool plan = false;; 
+   Transform Robot,Head;
+   Head.Rect(0,0,RH/3,RH/5,Unknown);
+   Head.SetCenter(RH/5,RH/5);
+   Head.SetLPosition(0,RH/2-RH/10);
    Robot.Rect(0,0,RW,RH,RobotColor);
    Robot.SetCenter(RCX,RCY);
+   Robot.AddChild(&Head);
    #endif
    initialiseMap();
    //fillMap(0.5,0.5,1,1);   
    //fillMap(-1,-1,-0.5,-0.5);   
+
+   //x = (Map_TR_x+Map_BL_x)/2;
+   //y = Map_BL_y;
+   //theta = PI/2;
    
    /* ------------------------ */
 #ifdef USE_ROS
@@ -377,16 +435,24 @@ int main (int argc, char* argv[]) {
       #endif
       
       //*
-      vector<Vector2d> * path = findPath(0,0);
+      if (plan) {
+         vector<Vector2d> * path = findPath(1,1);
+         if (path == NULL) {
+            plan = false;
+         }
+         else {
+            drawPath(path,&Window);
+            delete path;
+         }
+      }
       //*/
       #ifdef USE_ROS
       path_pub.publish(Path);
       #endif
 
       #ifdef USE_SFML
-      drawPath(path,&Window);
       Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
-      Robot.SetGRotation(theta);
+      Robot.SetGRotation(theta*180/PI-PI/2);
       Robot.Draw(&Window);
       /* ------------------------ */
       Window.Display() ;
@@ -395,12 +461,22 @@ int main (int argc, char* argv[]) {
          if (Event.Type == sf::Event::Closed) {
              Window.Close();
          }   
-         if (Event.Type == sf::Event::KeyPressed && Event.Key.Code == sf::Key::A) {
-            //?
+         if (Event.Type == sf::Event::KeyPressed) {
+            if(Event.Key.Code == sf::Key::A) {
+               plan = !plan;
+            }
+            if(Event.Key.Code == sf::Key::P) {
+               update_map = !update_map;
+            }
+            if(Event.Key.Code == sf::Key::S) {
+               saveMap();
+            }
+            if(Event.Key.Code == sf::Key::L) {
+               loadMap();
+            }
          }
       }   
       #endif
-      delete path;
    }
    #ifdef USE_SFML
    return EXIT_SUCCESS ; 

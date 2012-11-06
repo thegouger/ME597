@@ -8,6 +8,7 @@
 	<depend package="std_msgs"/>
    <depend package="geometry_msgs"/>
    <depend package="sensor_msgs"/>
+   <depend package="indoor_pos"/>
    <depend package="roscpp"/>
    <depend package="rospy"/>
 </package>
