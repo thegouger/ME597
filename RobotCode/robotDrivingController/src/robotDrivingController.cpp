@@ -22,10 +22,14 @@ const float MAX_OUTPUT_SPEED = 100.0f;
 const float L = 0.237;
 
 // Measurements
+Vector3f Y_noiseless;
 Vector3f Y;
 Matrix3f Q( (Matrix3f() << 0.05*0.05, 0,      0,
                               0,      0.05*0.05,  0,
                               0,      0,           0.0524*0.0524).finished() );
+Matrix3f R( (Matrix3f() << 0.01*0.01, 0,      0,
+                              0,     0.01*0.01,  0,
+                              0,     0,          0.1*0.1).finished() );
 float current_velocity;
 float steer_angle;
 
@@ -43,7 +47,7 @@ Eigen::Vector3f mu;
 Eigen::Vector3f mu_p;
 Eigen::Matrix3f G;
 Eigen::Matrix3f Sigma_p;
-Eigen::Matrix3f Sigma;
+Eigen::Matrix3f Sigma( Matrix3f().Identity() );
 Eigen::Matrix3f K;
 Eigen::Matrix3f C( Matrix3f().Identity() );
 
@@ -68,6 +72,8 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
    Y(1) = msg->Y;
    Y(2) = msg->Yaw/180.0*3.14159;
 
+   Y_noiseless = Y;
+
    if(!position_acquired)
    {
       position_acquired = true;
@@ -84,19 +90,22 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
    mu_p(1) = mu(1) + current_velocity*sin(mu(2))*dt;
-   mu_p(2) = mu(2) + (current_velocity*tan(.349*0.73)*dt)/L;
-   if(mu_p(2) > 2*3.14159)        mu_p(2) -= 2*3.14159;
-   else if(mu_p(2) < - 2*3.14159) mu_p(2) += 2*3.14159; 
+   mu_p(2) = mu(2) + (current_velocity*tan(steer_angle)*dt)/L;
+   if(mu_p(2) > 3.14159)       mu_p(2) -= 2*3.14159;
+   else if(mu_p(2) < -3.14159) mu_p(2) += 2*3.14159; 
 
    G = (Matrix3f() << 1, 0, -current_velocity*sin(mu(2))*dt,
                      0, 1, current_velocity*cos(mu(2))*dt,
                      0, 0, 1).finished();
 
-   Sigma_p = G*Sigma*(G.transpose());
+   Sigma_p = G*Sigma*(G.transpose()) + R;
 
    // measurement update
-   K     = Sigma_p*(C.transpose())*((C*Sigma_p*(C.transpose()) + Q).inverse());
-   mu    = mu_p + ((Y(0) < 1000) ? K*(Y - C*mu_p) : (Vector3f() << 0,0,0).finished());
+    //K     = Sigma_p*(C.transpose())*((C*Sigma_p*(C.transpose()) + Q).inverse());
+   K = Sigma_p*(Sigma_p + Q).inverse();
+   mu    = mu_p + ((Y(0) < 900) ? K*(Y - C*mu_p) : (Vector3f() << 0,0,0).finished());
+   // mu    = mu_p + K*(Y - C*mu_p);
+   //std::cout << mu-mu_p; 
    Sigma = (Matrix3f().Identity() - K*C)*Sigma_p;
 
    outfile << dt  << " " << msg->X << " " << msg->Y << " " << msg->Yaw/180.0*3.14159 << " " << mu(0) << " " << mu(1) << " "
@@ -149,14 +158,16 @@ int main(int argc, char* argv[])
    // PID, steering intermediaries
    double err_sum = 0.0f;
 
-   double max_steering_angle = 0.349; // 20 deg ?
+   double max_steering_angle = 0.349*0.80; // 20 deg ?
 
    // msgs to send/receive
    geometry_msgs::Twist cmd_vel;
+   geometry_msgs::Twist estimate;
 
    // subscribe to odom, publish cmd_vel
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, indoorPosCallback);
    ros::Publisher cmd_vel_pub = nodeHandle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+   ros::Publisher estimate_pub = nodeHandle.advertise<geometry_msgs::Twist>("estimate", 1);
 
    #ifdef ENCODERS
    ros::Subscriber encoder_sub = nodeHandle.subscribe("/data/encoders", 1, encoderCallback);
@@ -201,7 +212,7 @@ int main(int argc, char* argv[])
       cmd_vel.linear.x = vel_output;
 
       // Steering controller
-      if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.3)
+      if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.5)
       {
          //outfile << "Acheived waypoint: " << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
@@ -231,10 +242,24 @@ int main(int argc, char* argv[])
 
       ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
       
+      steer_angle = max_steering_angle;
       cmd_vel.angular.z = 100.0f; // steer_angle_normalized;
 
       // publish results
       cmd_vel_pub.publish(cmd_vel);
+
+      estimate.linear.x = mu(0);
+      estimate.linear.y = mu(1);
+      estimate.angular.z = mu(2);
+      // publish estimates
+     //  if(Y_noiseless(0) < 900)
+     //  {
+     //    estimate.linear.x = Y_noiseless(0);
+     //    estimate.linear.y = Y_noiseless(1);
+     //    estimate.angular.z = Y_noiseless(2);
+     //  }
+
+      estimate_pub.publish(estimate);
 
       loop_rate.sleep();
    }
