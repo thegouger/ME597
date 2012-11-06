@@ -13,8 +13,8 @@
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
 
-#define RobotLength 0.30 // meters
-#define RobotWidth 0.2  // meters
+#define RobotLength 0.237 // meters
+#define RobotWidth 0.162  // meters
 
 // Defines the Reign of Space 
 #define Map_BL_x -2 // X, meters
@@ -22,8 +22,8 @@
 #define Map_TR_x 2 // X, meters
 #define Map_TR_y 2 // Y, meters
         
-#define Map_X_Resolution 0.25 // meters/cell
-#define Map_Y_Resolution 0.25// meters/cell
+#define Map_X_Resolution 0.05 // meters/cell
+#define Map_Y_Resolution 0.05// meters/cell
 
 /* DONT CHANGE THESE THINGS */
 

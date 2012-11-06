@@ -12,6 +12,7 @@ SET(CMAKE_FORCE_UNIX_PATHS 1)
 SET(CMAKE_C_INCLUDE_PATH
   "../include"
   "/opt/ros/fuerte/include"
+  "/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include"
   )
 SET(CMAKE_CXX_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
 SET(CMAKE_Fortran_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
