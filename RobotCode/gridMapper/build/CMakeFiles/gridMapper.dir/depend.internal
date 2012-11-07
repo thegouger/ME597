@@ -93,7 +93,3 @@ CMakeFiles/gridMapper.dir/src/mapper.o
  /opt/ros/fuerte/include/ros/types.h
  /opt/ros/fuerte/include/sensor_msgs/LaserScan.h
  /opt/ros/fuerte/include/std_msgs/Header.h
-CMakeFiles/gridMapper.dir/src/planner.o
- /home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
- /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.cpp
- /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.hpp

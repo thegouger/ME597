@@ -1,7 +1,6 @@
 FILE(REMOVE_RECURSE
   "CMakeFiles/gridMapper.dir/src/body.o"
   "CMakeFiles/gridMapper.dir/src/mapper.o"
-  "CMakeFiles/gridMapper.dir/src/planner.o"
   "CMakeFiles/gridMapper.dir/src/gridMapper.o"
   "../bin/gridMapper.pdb"
   "../bin/gridMapper"

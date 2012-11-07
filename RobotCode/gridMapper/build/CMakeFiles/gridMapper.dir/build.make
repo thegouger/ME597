@@ -59,15 +59,15 @@ CMakeFiles/gridMapper.dir/src/body.o: /home/mitch/me597/ME597/RobotCode/indoor_p
 CMakeFiles/gridMapper.dir/src/body.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/generated
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/gridMapper.dir/src/body.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/body.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/body.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp
 
 CMakeFiles/gridMapper.dir/src/body.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gridMapper.dir/src/body.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp > CMakeFiles/gridMapper.dir/src/body.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp > CMakeFiles/gridMapper.dir/src/body.i
 
 CMakeFiles/gridMapper.dir/src/body.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gridMapper.dir/src/body.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp -o CMakeFiles/gridMapper.dir/src/body.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp -o CMakeFiles/gridMapper.dir/src/body.s
 
 CMakeFiles/gridMapper.dir/src/body.o.requires:
 .PHONY : CMakeFiles/gridMapper.dir/src/body.o.requires
@@ -91,15 +91,15 @@ CMakeFiles/gridMapper.dir/src/mapper.o: /home/mitch/me597/ME597/RobotCode/indoor
 CMakeFiles/gridMapper.dir/src/mapper.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/generated
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles $(CMAKE_PROGRESS_2)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/gridMapper.dir/src/mapper.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/mapper.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/mapper.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp
 
 CMakeFiles/gridMapper.dir/src/mapper.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gridMapper.dir/src/mapper.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp > CMakeFiles/gridMapper.dir/src/mapper.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp > CMakeFiles/gridMapper.dir/src/mapper.i
 
 CMakeFiles/gridMapper.dir/src/mapper.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gridMapper.dir/src/mapper.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp -o CMakeFiles/gridMapper.dir/src/mapper.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp -o CMakeFiles/gridMapper.dir/src/mapper.s
 
 CMakeFiles/gridMapper.dir/src/mapper.o.requires:
 .PHONY : CMakeFiles/gridMapper.dir/src/mapper.o.requires
@@ -109,38 +109,6 @@ CMakeFiles/gridMapper.dir/src/mapper.o.provides: CMakeFiles/gridMapper.dir/src/m
 .PHONY : CMakeFiles/gridMapper.dir/src/mapper.o.provides
 
 CMakeFiles/gridMapper.dir/src/mapper.o.provides.build: CMakeFiles/gridMapper.dir/src/mapper.o
-
-CMakeFiles/gridMapper.dir/src/planner.o: CMakeFiles/gridMapper.dir/flags.make
-CMakeFiles/gridMapper.dir/src/planner.o: ../src/planner.cpp
-CMakeFiles/gridMapper.dir/src/planner.o: ../manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/std_msgs/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/geometry_msgs/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/sensor_msgs/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/roslang/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/rospy/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /opt/ros/fuerte/share/roscpp/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/manifest.xml
-CMakeFiles/gridMapper.dir/src/planner.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/generated
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles $(CMAKE_PROGRESS_3)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/gridMapper.dir/src/planner.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/planner.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.cpp
-
-CMakeFiles/gridMapper.dir/src/planner.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gridMapper.dir/src/planner.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.cpp > CMakeFiles/gridMapper.dir/src/planner.i
-
-CMakeFiles/gridMapper.dir/src/planner.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gridMapper.dir/src/planner.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.cpp -o CMakeFiles/gridMapper.dir/src/planner.s
-
-CMakeFiles/gridMapper.dir/src/planner.o.requires:
-.PHONY : CMakeFiles/gridMapper.dir/src/planner.o.requires
-
-CMakeFiles/gridMapper.dir/src/planner.o.provides: CMakeFiles/gridMapper.dir/src/planner.o.requires
-	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/src/planner.o.provides.build
-.PHONY : CMakeFiles/gridMapper.dir/src/planner.o.provides
-
-CMakeFiles/gridMapper.dir/src/planner.o.provides.build: CMakeFiles/gridMapper.dir/src/planner.o
 
 CMakeFiles/gridMapper.dir/src/gridMapper.o: CMakeFiles/gridMapper.dir/flags.make
 CMakeFiles/gridMapper.dir/src/gridMapper.o: ../src/gridMapper.cpp
@@ -153,17 +121,17 @@ CMakeFiles/gridMapper.dir/src/gridMapper.o: /opt/ros/fuerte/share/rospy/manifest
 CMakeFiles/gridMapper.dir/src/gridMapper.o: /opt/ros/fuerte/share/roscpp/manifest.xml
 CMakeFiles/gridMapper.dir/src/gridMapper.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/manifest.xml
 CMakeFiles/gridMapper.dir/src/gridMapper.o: /home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/generated
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles $(CMAKE_PROGRESS_4)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles $(CMAKE_PROGRESS_3)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/gridMapper.dir/src/gridMapper.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/gridMapper.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/gridMapper.dir/src/gridMapper.o -c /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp
 
 CMakeFiles/gridMapper.dir/src/gridMapper.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/gridMapper.dir/src/gridMapper.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp > CMakeFiles/gridMapper.dir/src/gridMapper.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp > CMakeFiles/gridMapper.dir/src/gridMapper.i
 
 CMakeFiles/gridMapper.dir/src/gridMapper.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/gridMapper.dir/src/gridMapper.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp -o CMakeFiles/gridMapper.dir/src/gridMapper.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp -o CMakeFiles/gridMapper.dir/src/gridMapper.s
 
 CMakeFiles/gridMapper.dir/src/gridMapper.o.requires:
 .PHONY : CMakeFiles/gridMapper.dir/src/gridMapper.o.requires
@@ -178,7 +146,6 @@ CMakeFiles/gridMapper.dir/src/gridMapper.o.provides.build: CMakeFiles/gridMapper
 gridMapper_OBJECTS = \
 "CMakeFiles/gridMapper.dir/src/body.o" \
 "CMakeFiles/gridMapper.dir/src/mapper.o" \
-"CMakeFiles/gridMapper.dir/src/planner.o" \
 "CMakeFiles/gridMapper.dir/src/gridMapper.o"
 
 # External object files for target gridMapper
@@ -186,7 +153,6 @@ gridMapper_EXTERNAL_OBJECTS =
 
 ../bin/gridMapper: CMakeFiles/gridMapper.dir/src/body.o
 ../bin/gridMapper: CMakeFiles/gridMapper.dir/src/mapper.o
-../bin/gridMapper: CMakeFiles/gridMapper.dir/src/planner.o
 ../bin/gridMapper: CMakeFiles/gridMapper.dir/src/gridMapper.o
 ../bin/gridMapper: CMakeFiles/gridMapper.dir/build.make
 ../bin/gridMapper: CMakeFiles/gridMapper.dir/link.txt
@@ -199,7 +165,6 @@ CMakeFiles/gridMapper.dir/build: ../bin/gridMapper
 
 CMakeFiles/gridMapper.dir/requires: CMakeFiles/gridMapper.dir/src/body.o.requires
 CMakeFiles/gridMapper.dir/requires: CMakeFiles/gridMapper.dir/src/mapper.o.requires
-CMakeFiles/gridMapper.dir/requires: CMakeFiles/gridMapper.dir/src/planner.o.requires
 CMakeFiles/gridMapper.dir/requires: CMakeFiles/gridMapper.dir/src/gridMapper.o.requires
 .PHONY : CMakeFiles/gridMapper.dir/requires
 

@@ -1,13 +1,13 @@
 #include <fstream> 
+#include <string>
 
 #include "consts.hpp"
 #include "mapper.hpp"
 #include <sensor_msgs/LaserScan.h>
 
+using namespace std;
+
 /* --- Mapping --- */
-#define LOGIT(p) log(p/(1-p))
-#define UNLOGIT(p) (exp(p)/(1+exp(p)))
-#define PI 3.14159
 
 LaserScanner::LaserScanner(){
    RMax = 1;
@@ -17,23 +17,13 @@ LaserScanner::LaserScanner(){
    AngRes = PI/180;
 
    Beta = 0.05;  // degrees
-   Alpha = .1;   // m
-   numRanges = (int)((AngMax - AngMin)/AngRes);
+   Alpha = .1;   // m <--- wait whatttT??? this should set?!?!
 
    grid = NULL ;
 }
 
 LaserScanner::LaserScanner(OccupencyGrid * Grid){
-   RMax = 1;
-   RMin = 0;
-   AngMax = PI/2;
-   AngMin = -PI/2;
-   AngRes = PI/180;
-
-   Beta = 0.05;  // degrees
-   Alpha = .1;   // m
-   numRanges = (int)((AngMax - AngMin)/AngRes);
-
+   OccupencyGrid();
    grid = Grid ;
 }
 
@@ -48,75 +38,84 @@ void LaserScanner::callback(const sensor_msgs::LaserScan::ConstPtr& msg)
     if (grid != NULL) updateMap();
 }
 
-
-/* Set Probibilites */
-const float P0 = 0.5;
-const float LP0 = LOGIT(P0);
-
-const float PHigh = 0.8;
-const float LPHigh = LOGIT(PHigh);
-
-const float PLow = 0.3;
-const float LPLow = LOGIT(PLow);
-
-
-
-
 OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2,float x_res,float y_res) {
+   PLow = 0.3;
+   P0 = 0.5;
+   PHigh = 0.7;
+   LPLow = LOGIT(PLow);
+   LP0 = LOGIT(P0);
+   LPHigh = LOGIT(PHigh);
+
    x1 = map_x1;
    x2 = map_x2;
    y1 = map_y1;
    y2 = map_y2;
 
-   M = (y2-y1)/yRes;
-   N = (x2-x1)/xRes; 
+   m = (x2-x1)/xRes;
+   n = (y2-y1)/yRes; 
 
-   Map = new float[M][N];
+   *Map = new float[m];
+   for(int i=0; i<m; i++){
+      Map[i] = new float[n];
+   }
 
-   for (int i=0; i<M; i++) {
-       for (int j=0; j<N; j++) {
+   for (int i=0; i<m; i++) {
+       for (int j=0; j<n; j++) {
             Map[i][j] = LP0;
            //Map[i][j] = PLow+i*(PHigh-PLow)/M;
        }
    }
 }
 
-float OccupencyGrid::jtoy (const int i) {
-   return y2 - j*yRes + yRes/2.0;
-}
-
 float OccupencyGrid::itox (const int i) {
    return x1 + i*xRes + xRes/2.0;
 }
 
-void OccupencyGrid::loadMap() {
+int OccupencyGrid::xtoi (const float x) {
+   float i = (x-x1-xRes/2.0)/xRes;
+   if ( fabs(i-ceil(i)) < fabs(i-floor(i)) )
+      return (int)ceil(i);
+   return (int)floor(i);
+}
+
+float OccupencyGrid::jtoy (const int j) {
+   return y1 + j*yRes + yRes/2.0;
+}
+
+int OccupencyGrid::ytoj (const float y) {
+   float j = (y-y1-yRes/2.0)/yRes;
+   if ( fabs(j-ceil(j)) < fabs(j-floor(j)) )
+      return (int)ceil(j);
+   return (int)floor(j);
+}
+
+void OccupencyGrid::loadMap(std::string fileName) {
    ifstream infile;
    infile.open("MapLoad");
-   update_map = false; 
-    for (int i=0; i<M; i++) {
-        for (int j=1; j<N; j++) {
+    for (int i=0; i<m; i++) {
+        for (int j=1; j<n; j++) {
             infile >> Map[i][j];
             Map[i][j] = LOGIT(Map[i][j]);
         }
     }
 }
 
-void OccupencyGrid::saveMap() {
+void OccupencyGrid::saveMap(std::string fileName) {
    ofstream outfile;
    outfile.open("MapSave");
-    for (int i=0; i<M; i++) {
+    for (int i=0; i<m; i++) {
         outfile << UNLOGIT(Map[i][0]);
-        for (int j=1; j<N; j++) {
+        for (int j=1; j<n; j++) {
             outfile <<" "<< UNLOGIT(Map[i][j]);
         }
         outfile << endl;
     }
 }
 
-
-void OccupencyGrid::updateCell (float p,int i,int j) {
-    if (Map[i][j] < 5 && Map[i][j] > -5) {
-         Map[i][j] = p + Map[i][j] - LP0;
+void OccupencyGrid::updateCell (int p,int i,int j) {
+    if (Map[i][j] < 5 && Map[i][j] > -5) { // <-- update with less stupid numbers
+         Map[i][j] -= LP0;
+         Map[i][j] += p<0 ? LPLow : (p>0 ? LPHigh : LP0 ) ;
     }
 }
 
@@ -126,7 +125,7 @@ void OccupencyGrid::updateCell (float p,int i,int j) {
    Assume ranges is structured siuch that k = 0 => meas at AngMin
    Use a boundary of Beta/2 for discarding outlier angles
    */
-int getMinIndex(float phi) {
+int LaserScanner::getMinIndex(float phi) {
     if ((phi > AngMax && fabs(phi - AngMax) > Beta / 2) ||
             (phi < AngMin && fabs(phi - AngMin) > Beta/ 2))
         return -1;
@@ -145,48 +144,49 @@ int getMinIndex(float phi) {
     return k;
 }
 
-void OccupencyGrid::updateMap(void) { // get x,y,theta from ekf message
-    float p;
+void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
+    int p;
     float r, phi;
     float cx, cy ;
-    for (int i=0; i<grid->M; i++) {
-        for (int j=0; j<grid->N; j++) {
-            cy = Map_BL_y + Map_Y_Resolution*i;
-            cx = Map_BL_x + Map_X_Resolution*j;
+    for (int i=0; i<grid->M(); i++) {
+        for (int j=0; j<grid->N(); j++) {
+            cx = grid->itox(i);
+            cy = grid->jtoy(j);
 
             // range and phi to current cell
             r = sqrt((pow(cx - x, 2)) + pow(cy - y, 2));
+
             phi = atan2(cy - y, cx - x) - theta  ;
             phi = fmod(atan2(cy - y, cx - x) - theta+PI,2*PI)-PI;
-
             phi = acos( ((cy-y)*sin(theta) + (cx-x)*cos(theta))/sqrt(pow(cx-x,2)+pow(cy-y,2)) );
             phi *= (cy-y)*cos(theta) - (cx-x)*sin(theta) > 0 ? 1 : -1 ; 
 
             if (fabs(phi) > 2*PI) {
             ROS_INFO("phi=%f, theta=%f",phi,theta);
             }
+
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
 
-            p=grid->LP0;
+            p=0;
             // If outside measured angles
             if (k == -1) {
-                p = grid->LP0;
+                p = 0;
             }
             /*else if (r < RMax && ranges[k] < RMin ){
                p = LPLow;
             }*/
             // If outside field of view of the scan range
             else if (r > fmin(RMax, ranges[k]+Alpha/2)) {
-                p = grid->LP0;
+                p = 0;
             }
             // If the range measurement was in this cell, likely to be an object
             else if ((ranges[k]< RMax) && (fabs(r-ranges[k])<Alpha/2)) {
-                p = grid->LPHigh;
+                p = 1;
             }
             // If the cell is in front of the range measurement, likely to be empty
             else if (r <= fmin(RMax,ranges[k])) {
-                p = grid->LPLow;
+                p = -1;
             }
             grid->updateCell(p,i,j);
         }
@@ -203,5 +203,8 @@ void OccupencyGrid::fillMap(float x1, float y1, float x2, float y2) {
 }
 
 OccupencyGrid::~OccupencyGrid(){
-   delete Map[][];
+   for (int i=0; i<m; i++) {
+      delete Map[i];
+   }
+   delete Map;
 }

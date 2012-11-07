@@ -7,7 +7,7 @@
 
 #include "consts.hpp"
 #include "mapper.hpp"
-#include "planner.hpp"
+//#include "planner.hpp"
 #ifdef USE_SFML
    #include <SFML/Graphics.hpp>
    #include "body.hpp"

@@ -348,21 +348,6 @@ src/mapper.s:
 	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/src/mapper.s
 .PHONY : src/mapper.s
 
-# target to build an object file
-src/planner.o:
-	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/src/planner.o
-.PHONY : src/planner.o
-
-# target to preprocess a source file
-src/planner.i:
-	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/src/planner.i
-.PHONY : src/planner.i
-
-# target to generate assembly for a file
-src/planner.s:
-	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/src/planner.s
-.PHONY : src/planner.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -396,9 +381,6 @@ help:
 	@echo "... src/mapper.o"
 	@echo "... src/mapper.i"
 	@echo "... src/mapper.s"
-	@echo "... src/planner.o"
-	@echo "... src/planner.i"
-	@echo "... src/planner.s"
 .PHONY : help
 
 

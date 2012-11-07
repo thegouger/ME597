@@ -1,32 +1,59 @@
 #ifndef __MAPPER_HPP__
 #define __MAPPER_HPP__
 
+#include <cmath>
+#include <vector>
+#include <string>
+#ifdef USE_ROS
+   #include<ros/ros.h>
+   #include <sensor_msgs/LaserScan.h>
+#endif
+
+#define LOGIT(p) log(p/(1-p))
+#define UNLOGIT(p) (exp(p)/(1+exp(p)))
+#define PI 3.14159
+
+float x,y,theta;
+
 class OccupencyGrid {
    public:
       OccupencyGrid();
-      OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2,float x_res,float y_res);
+      OccupencyGrid(const float map_x1,const float map_x2,const float map_y1,const float map_y2,const float x_res,const float y_res);
 
       float ** Map;
       
       int M() { return m; }
       int N() { return n; }
+      
+      float cellProbobility(int i,int j) { return UNLOGIT(Map[i][j]); }
 
-      float itoy (const int i) ;
-      float jtox (const int j) ;
+      float itox (const int i) ;
+      int xtoi (const float x) ;
+      float jtoy (const int j) ;
+      int ytoj (const float y) ;
 
-      void saveMap(string fileName) ;
-      void loadMap(string fileName) ;
+      void saveMap(std::string fileName) ;
+      void loadMap(std::string fileName) ;
       
       void fillMap(float x1, float y1, float x2, float y2) ;
 
-      void updateCell (float p,int i,int j) ;
+      void updateCell (int p,int i,int j) ;
 
       ~OccupencyGrid();
    private:
       int m,n;
-      
-      float x1,x2,y1,y1;
+
+      float x1,x2,y1,y2;
       float xRes,yRes;
+      
+      /* Set Probibilites */
+      float PLow ;
+      float P0 ;
+      float PHigh ;
+
+      float LPLow ;
+      float LP0 ;
+      float LPHigh;
 };
 
 class LaserScanner {
@@ -34,23 +61,24 @@ class LaserScanner {
       LaserScanner();
       LaserScanner(OccupencyGrid * );
 
-      float RMax ;
-      float RMin ;
-      float AngMax ;
-      float AngMin ;
-      float AngRes ;
-
-      const float Beta ;  // degrees
-      const float Alpha ;   // m
-      std::vector<float> ranges;
-
       OccupencyGrid * grid;
 
       void callback (const sensor_msgs::LaserScan::ConstPtr& msg);
 
       ~LaserScanner();
       private:
+         float RMax ;
+         float RMin ;
+         float AngMax ;
+         float AngMin ;
+         float AngRes ;
+
+         float Beta ;  // degrees
+         float Alpha ;   // m
+         std::vector<float> ranges;
+
          void updateMap() ;
+         int getMinIndex(float phi) ;
 };
 
 #endif

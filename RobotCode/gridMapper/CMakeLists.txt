@@ -24,7 +24,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #common commands for building c++ executables and libraries
 rosbuild_add_library(gridMapper src/body.cpp)
 rosbuild_add_library(gridMapper src/mapper.cpp)
-rosbuild_add_library(gridMapper src/planner.cpp)
+#rosbuild_add_library(gridMapper src/planner.cpp)
 target_link_libraries(gridMapper  sfml-graphics)
 target_link_libraries(gridMapper  sfml-window)
 target_link_libraries(gridMapper  sfml-system)
