@@ -9,6 +9,8 @@ CMakeFiles/gridMapper.dir/src/gridMapper.o
  /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.hpp
  /home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
  /home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.hpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.hpp
  /home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ips_msg.h
  /opt/ros/fuerte/include/XmlRpcDecl.h
  /opt/ros/fuerte/include/XmlRpcValue.h
@@ -71,3 +73,27 @@ CMakeFiles/gridMapper.dir/src/gridMapper.o
  /opt/ros/fuerte/include/std_msgs/Header.h
  /opt/ros/fuerte/include/std_msgs/MultiArrayDimension.h
  /opt/ros/fuerte/include/std_msgs/MultiArrayLayout.h
+CMakeFiles/gridMapper.dir/src/mapper.o
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.cpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.hpp
+ /opt/ros/fuerte/include/ros/builtin_message_traits.h
+ /opt/ros/fuerte/include/ros/duration.h
+ /opt/ros/fuerte/include/ros/exception.h
+ /opt/ros/fuerte/include/ros/macros.h
+ /opt/ros/fuerte/include/ros/message_forward.h
+ /opt/ros/fuerte/include/ros/message_operations.h
+ /opt/ros/fuerte/include/ros/message_traits.h
+ /opt/ros/fuerte/include/ros/platform.h
+ /opt/ros/fuerte/include/ros/roscpp_serialization_macros.h
+ /opt/ros/fuerte/include/ros/rostime_decl.h
+ /opt/ros/fuerte/include/ros/serialization.h
+ /opt/ros/fuerte/include/ros/serialized_message.h
+ /opt/ros/fuerte/include/ros/time.h
+ /opt/ros/fuerte/include/ros/types.h
+ /opt/ros/fuerte/include/sensor_msgs/LaserScan.h
+ /opt/ros/fuerte/include/std_msgs/Header.h
+CMakeFiles/gridMapper.dir/src/planner.o
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.cpp
+ /home/mitch/me597/ME597/RobotCode/gridMapper/src/planner.hpp

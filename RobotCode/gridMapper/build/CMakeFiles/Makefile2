@@ -211,7 +211,7 @@ clean: CMakeFiles/clean-test-results.dir/clean
 CMakeFiles/gridMapper.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/depend
 	$(MAKE) -f CMakeFiles/gridMapper.dir/build.make CMakeFiles/gridMapper.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles  1 2
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles  1 2 3 4
 	@echo "Built target gridMapper"
 .PHONY : CMakeFiles/gridMapper.dir/all
 
@@ -221,7 +221,7 @@ all: CMakeFiles/gridMapper.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/gridMapper.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/gridMapper.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/mitch/me597/ME597/RobotCode/gridMapper/build/CMakeFiles 0
 .PHONY : CMakeFiles/gridMapper.dir/rule

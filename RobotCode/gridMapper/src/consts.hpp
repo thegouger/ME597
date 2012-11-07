@@ -36,8 +36,8 @@
 #define XPPC MW / (Map_Width/Map_Y_Resolution ) 
 #define YPPC MH / (Map_Length/Map_X_Resolution ) 
 
-#define RH PPM*RobotLength // Boat Height
 #define RW PPM*RobotWidth  // Boat Width
+#define RH PPM*RobotLength // Boat Height
 #define RCX RW/2.0 // Boat kinematic centre X corodinate 
 #define RCY RH-10 // Boat kinematic centre Y corodinate 
 
