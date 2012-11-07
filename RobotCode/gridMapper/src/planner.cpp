@@ -8,29 +8,6 @@ float H(int i, int j, int gi, int gj) {
    return 0.5 * (pow(gi-i,2)+pow(gj-j,2));
 }
 
-struct Vector2d {
-   float x;
-   float y;
-};
-
-class State {
-   public:
-   State() {};
-   bool operator>(const State& right) const;
-   bool operator<(const State& right) const;
-   int i;
-   int j;
-   float g;
-   float f;
-   State * parent;
-};
-
-struct CompareState : public std::binary_function<State*, State*, bool> {
-   bool operator()(const State* s1, const State* s2) const {
-      return s1->f > s2->f ;
-   }
-};
-
 bool validPosition(int i, int j) {
    if ( i < 0 || i >= M) return false;
    if ( j < 0 || j >= N) return false;

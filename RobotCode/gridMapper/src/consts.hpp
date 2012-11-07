@@ -7,7 +7,7 @@
 #define MAXFPS 100  
 
 /* You Can Change These Things */
-#define USE_SFML
+//#define USE_SFML
 #define USE_ROS
 
 #define PPM 100 // Pixels per Meter
@@ -17,10 +17,10 @@
 #define RobotWidth 0.162  // meters
 
 // Defines the Reign of Space 
-#define Map_BL_x -2 // X, meters
-#define Map_BL_y -2  // Y, meters
-#define Map_TR_x 2 // X, meters
-#define Map_TR_y 2 // Y, meters
+#define Map_X1 -2 // X, meters
+#define Map_X2 2 // X, meters
+#define Map_Y1 -2  // Y, meters
+#define Map_Y2 2 // Y, meters
         
 #define Map_X_Resolution 0.05 // meters/cell
 #define Map_Y_Resolution 0.05// meters/cell
@@ -48,8 +48,5 @@
 #define   X2 (XRES+MW)/2
 #define   Y1 (YRES-MH)/2 
 #define   Y2 (YRES+MH)/2
-
-
-
 
 #endif

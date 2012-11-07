@@ -6,8 +6,6 @@
 #include <functional>
 
 #include "consts.hpp"
-#include "mapper.hpp"
-//#include "planner.hpp"
 #ifdef USE_SFML
    #include <SFML/Graphics.hpp>
    #include "body.hpp"
@@ -22,6 +20,9 @@
 
 using namespace std;
 
+#include "mapper.hpp"
+//#include "planner.hpp"
+
 /* All The Colours */
 #ifdef USE_SFML
 sf::Color RobotColor(214,246,0);
@@ -35,6 +36,8 @@ sf::Color Unknown(32,32,32);
 #endif
 /* ^^ Colours ^^ */
 
+   LaserScanner scanner;
+
 /* control flags */
 bool update_map;
 
@@ -42,8 +45,6 @@ bool update_map;
 float x,y,theta;
 
 #ifdef USE_ROS
-
-
 void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
    x = msg->linear.x;
    y = msg->linear.y;
@@ -52,14 +53,13 @@ void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
    y = msg->Y;
-   theta = PI*msg->Yaw/180-PI ;
+   theta = msg->Yaw;
 }
 #endif
 
 /* --- Graphics Related Functions --- */
 #ifdef USE_SFML
 void  colorTransform (float p,sf::Color & C) {
-   p  = UNLOGIT(p);
    if (p > PHigh) {
       C = Full;
    }
@@ -82,13 +82,13 @@ void  colorTransform (float p,sf::Color & C) {
 }
 
 /* Here is where we draw the map */
-void drawMap(sf::RenderWindow * W) {
+void drawMap(OccupencyMap *grid,sf::RenderWindow * W) {
    sf::Shape Cell;
    sf::Color C; 
    W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT,X2+WT,Y2+WT,Border));
-   for (int i=0; i<M; i++) {
-      for (int j=0; j<N; j++) {
-         colorTransform(Map[i][j],C);
+   for (int i=0; i<grid->M(); i++) {
+      for (int j=0; j<grid->N(); j++) {
+         colorTransform(grid->cellProbobility(i,j),C);
          Cell = sf::Shape::Rectangle (X1+i*XPPC, Y1+j*YPPC, X1+(i+1)*XPPC, Y1+YPPC*(j+1),C); 
          W->Draw(Cell);
       }
@@ -97,14 +97,16 @@ void drawMap(sf::RenderWindow * W) {
 }
 
 void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
+   /*
    float cx, cy;
    sf::Shape Cell;
    for (int i=0; i<path->size(); i++) {
-      cy = (path->at(i).x-Map_BL_x)/Map_X_Resolution;
-      cx = (path->at(i).y-Map_BL_y)/Map_Y_Resolution;
+      cy = path->at(i).x-Map_BL_x;
+      cx = path->at(i).y-Map_BL_y;
       Cell = sf::Shape::Rectangle (X1+cx*XPPC, Y1+cy*YPPC, X1+(cx+1)*XPPC, Y1+YPPC*(cy+1),PathColor); 
       W->Draw(Cell);
    }
+   */
 }
 #endif
 
@@ -122,14 +124,17 @@ int main (int argc, char* argv[]) {
 
    ros::NodeHandle nodeHandle;
 
+   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
+
    std_msgs::Float32MultiArray Path ;
 
-   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , laserScannerCallback);
+   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , LIDAR.callback);
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
 
    #endif
+   scanner.grid = &Grid;
 
    /* ----- Setup ----- */
    update_map = true;
@@ -142,7 +147,6 @@ int main (int argc, char* argv[]) {
    Robot.SetCenter(RCX,RCY);
    Robot.AddChild(&Head);
    #endif
-   initialiseMap();
    //fillMap(0.5,0.5,1,1);   
    //fillMap(-1,-1,-0.5,-0.5);   
 
@@ -159,7 +163,7 @@ int main (int argc, char* argv[]) {
       drawMap(&Window);
       #endif
       
-      //*
+      /*
       if (plan) {
          vector<Vector2d> * path = findPath(1,1);
          if (path == NULL) {
@@ -172,12 +176,15 @@ int main (int argc, char* argv[]) {
       }
       //*/
       #ifdef USE_ROS
-      path_pub.publish(Path);
+      //path_pub.publish(Path);
+      scanner.x = x;
+      scanner.y = y;
+      scanner.theta = theta;
       #endif
 
       #ifdef USE_SFML
-      Robot.SetGPosition(X1+PPM*(y-Map_BL_y),Y1+PPM*(x-Map_BL_x));
-      Robot.SetGRotation(theta*180/PI-PI/2);
+      Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2+PPM*(y-Map_Y1));
+      Robot.SetGRotation(theta*180/PI);
       Robot.Draw(&Window);
       /* ------------------------ */
       Window.Display() ;

@@ -5,7 +5,7 @@
 #include "mapper.hpp"
 #include <sensor_msgs/LaserScan.h>
 
-using namespace std;
+//using namespace std;
 
 /* --- Mapping --- */
 
@@ -23,7 +23,7 @@ LaserScanner::LaserScanner(){
 }
 
 LaserScanner::LaserScanner(OccupencyGrid * Grid){
-   OccupencyGrid();
+   LaserScanner();
    grid = Grid ;
 }
 
@@ -90,7 +90,7 @@ int OccupencyGrid::ytoj (const float y) {
 }
 
 void OccupencyGrid::loadMap(std::string fileName) {
-   ifstream infile;
+   std::ifstream infile;
    infile.open("MapLoad");
     for (int i=0; i<m; i++) {
         for (int j=1; j<n; j++) {
@@ -101,14 +101,14 @@ void OccupencyGrid::loadMap(std::string fileName) {
 }
 
 void OccupencyGrid::saveMap(std::string fileName) {
-   ofstream outfile;
+   std::ofstream outfile;
    outfile.open("MapSave");
     for (int i=0; i<m; i++) {
         outfile << UNLOGIT(Map[i][0]);
         for (int j=1; j<n; j++) {
             outfile <<" "<< UNLOGIT(Map[i][j]);
         }
-        outfile << endl;
+        outfile << "\n";
     }
 }
 
@@ -194,12 +194,13 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
 }
 
 void OccupencyGrid::fillMap(float x1, float y1, float x2, float y2) {
-   
+  /* 
    for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
       for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
          Map[i][j] = LPHigh;
       }
    }
+   */
 }
 
 OccupencyGrid::~OccupencyGrid(){

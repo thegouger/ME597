@@ -13,7 +13,6 @@
 #define UNLOGIT(p) (exp(p)/(1+exp(p)))
 #define PI 3.14159
 
-float x,y,theta;
 
 class OccupencyGrid {
    public:
@@ -62,10 +61,11 @@ class LaserScanner {
       LaserScanner(OccupencyGrid * );
 
       OccupencyGrid * grid;
+      float x,y,theta;
 
       void callback (const sensor_msgs::LaserScan::ConstPtr& msg);
 
-      ~LaserScanner();
+      ~LaserScanner() {}
       private:
          float RMax ;
          float RMin ;
