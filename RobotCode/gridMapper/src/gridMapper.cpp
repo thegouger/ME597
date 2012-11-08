@@ -97,11 +97,10 @@ void drawMap(OccupencyGrid *grid,sf::RenderWindow * W) {
    for (int i=0; i<grid->M(); i++) {
       for (int j=0; j<grid->N(); j++) {
          colorTransform(grid->cellProbobility(i,j),C);
-         Cell = sf::Shape::Rectangle (X1+i*XPPC, Y1+j*YPPC, X1+(i+1)*XPPC, Y1+YPPC*(j+1),C); 
+         Cell = sf::Shape::Rectangle (X1+i*XPPC, Y2-j*YPPC, X1+(i+1)*XPPC, Y2-YPPC*(j+1),C); 
          W->Draw(Cell);
       }
    }
-   
 }
 
    //*
@@ -113,7 +112,7 @@ void drawPath(OccupencyGrid *grid,vector<Vector2d> * path, sf::RenderWindow *W) 
       y1 = grid->ytoj(path->at(i-1).y);
       x2 = grid->xtoi(path->at(i).x);
       y2 = grid->ytoj(path->at(i).y);
-      Line = sf::Shape::Line(X1+x1*XPPC, Y1+y1*YPPC, X1+x2*XPPC, Y1+YPPC*y2,PathThickness,PathColor);
+      Line = sf::Shape::Line(X1+x1*XPPC, Y2-y1*YPPC, X1+x2*XPPC, Y2-YPPC*y2,PathThickness,PathColor);
       W->Draw(Line);
    }
 }
@@ -176,7 +175,7 @@ int main (int argc, char* argv[]) {
       //*
       plan = true;
       if (plan) {
-         vector<Vector2d> * path = Grid.findPath(0,0,1,1);
+         vector<Vector2d> * path = Grid.findPath(x,y,1,1);
          cout << path->size() << endl;
          if (path == NULL) {
             plan = false;
@@ -191,8 +190,8 @@ int main (int argc, char* argv[]) {
       //path_pub.publish(Path);
       #endif
       x = -1;
-      y = 1;
-      theta =0 ;
+      theta += PI/180 ;
+      y = 1*sin(2*theta);
       //cout << Grid.M() << " " << Grid.N() << endl; 
 
       #ifdef USE_SFML
