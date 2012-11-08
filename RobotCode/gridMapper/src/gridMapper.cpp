@@ -161,7 +161,6 @@ int main (int argc, char* argv[]) {
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
    #endif
 
-   float ang=0;
    Grid.fillMap(0.55,0.8,0.25,1);   
    Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
    Grid.fillMap(0.55,0.8,-1,-0.25);   
@@ -180,7 +179,7 @@ int main (int argc, char* argv[]) {
       #endif
       
       //*
-      plan = true;
+      plan = false;
       if (plan) {
          //vector<Vector2d> * path = Grid.findPath(x,y,0,0);
          vector<Vector2d> * path = Grid.findPath2(x,y,theta,1.8,0);
@@ -196,11 +195,13 @@ int main (int argc, char* argv[]) {
       #ifdef USE_ROS
       //path_pub.publish(Path);
       #endif
-      x = -1.5;
-      theta = 0 ;
-      ang += 2*PI/180;
-      theta = ang;
-      y = 1*sin(2*ang);
+
+      /* ~~ Test Code ~~ */
+      float v = .1;
+      x += v*cos(theta);
+      y += v*sin(theta);
+      theta += 10*PI/180.0;
+      /* ~~ End Test ~~ */
 
       #ifdef USE_SFML
       Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1));
