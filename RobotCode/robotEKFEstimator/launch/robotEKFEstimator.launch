@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-   <node pkg="robotEKFEstimator" type="robotEKFEstimator" name="robotEKFEstimator" output="screen">
-   </node>
-</launch>
-
