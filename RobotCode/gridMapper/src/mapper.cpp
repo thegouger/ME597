@@ -27,6 +27,7 @@ LaserScanner::LaserScanner(OccupencyGrid * Grid){
    grid = Grid ;
 }
 
+#ifdef USE_ROS
 void LaserScanner::callback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
     ranges = msg->ranges;
@@ -37,6 +38,7 @@ void LaserScanner::callback(const sensor_msgs::LaserScan::ConstPtr& msg)
     AngRes = msg->angle_increment;
     if (grid != NULL) updateMap();
 }
+#endif
 
 OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2,float x_res,float y_res) {
    PLow = 0.3;
@@ -51,10 +53,14 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
    y1 = map_y1;
    y2 = map_y2;
 
-   m = (x2-x1)/xRes;
-   n = (y2-y1)/yRes; 
+   std::cout << x1 << " " << x2 << std::endl;
+   std::cout << y1 << " " << y2 << std::endl;
+   std::cout << x_res << " " << y_res << std::endl;
 
-   *Map = new float[m];
+   m = (int)((x2-x1)/x_res);
+   n = (int)((y2-y1)/y_res); 
+   std::cout << m << " " << n << std::endl;
+   Map = new float*[m];
    for(int i=0; i<m; i++){
       Map[i] = new float[n];
    }
@@ -62,10 +68,12 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
             Map[i][j] = LP0;
-           //Map[i][j] = PLow+i*(PHigh-PLow)/M;
+            //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
 }
+int OccupencyGrid::M() { return m; }
+int OccupencyGrid::N() { return n; }
 
 float OccupencyGrid::itox (const int i) {
    return x1 + i*xRes + xRes/2.0;
@@ -160,10 +168,6 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
             phi = fmod(atan2(cy - y, cx - x) - theta+PI,2*PI)-PI;
             phi = acos( ((cy-y)*sin(theta) + (cx-x)*cos(theta))/sqrt(pow(cx-x,2)+pow(cy-y,2)) );
             phi *= (cy-y)*cos(theta) - (cx-x)*sin(theta) > 0 ? 1 : -1 ; 
-
-            if (fabs(phi) > 2*PI) {
-            ROS_INFO("phi=%f, theta=%f",phi,theta);
-            }
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);

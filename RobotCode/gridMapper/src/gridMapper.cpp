@@ -36,7 +36,7 @@ sf::Color Unknown(32,32,32);
 #endif
 /* ^^ Colours ^^ */
 
-   LaserScanner scanner;
+LaserScanner scanner;
 
 /* control flags */
 bool update_map;
@@ -129,18 +129,19 @@ int main (int argc, char* argv[]) {
 
 
    /* ----- Setup ----- */
-   x = y = theta = 0 ;
-   bool plan = false;; 
    Transform Robot,Head;
-   Head.Rect(0,0,RH/3,RH/5,Unknown);
-   Head.SetCenter(RH/5,RH/5);
-   Head.SetLPosition(0,RH/2-RH/10);
-   Robot.Rect(0,0,RW,RH,RobotColor);
+   Head.Rect(-RL/10,-RW/4,RL/10,RW/4,Unknown);
+   Head.SetCenter(RL/10,0);
+   Head.SetLPosition(RL-RCX,0);
+   Robot.Rect(0,0,RL,RW,RobotColor);
    Robot.SetCenter(RCX,RCY);
    Robot.AddChild(&Head);
    #endif
    //fillMap(0.5,0.5,1,1);   
    //fillMap(-1,-1,-0.5,-0.5);   
+   x = y = theta = 0 ;
+   bool plan = false;; 
+   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
 
    #ifdef USE_ROS
    ros::init(argc, argv, "gridMapper");
@@ -148,21 +149,20 @@ int main (int argc, char* argv[]) {
 
    ros::NodeHandle nodeHandle;
 
-   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
    scanner.grid = &Grid;
 
    std_msgs::Float32MultiArray Path ;
 
-   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 ,scannerCallback);
+   //ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 ,scannerCallback);
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
-
    #endif
+
    /* ------------------------ */
 #ifdef USE_ROS
    while(ros::ok()) {// <-- Replace with ROS 
-      ros::spinOnce();
+      //ros::spinOnce();
 #else
    while(1) {
 #endif 
@@ -187,9 +187,13 @@ int main (int argc, char* argv[]) {
       #ifdef USE_ROS
       //path_pub.publish(Path);
       #endif
+      x = -2;
+      y = 2;
+      theta =0 ;
+      //cout << Grid.M() << " " << Grid.N() << endl; 
 
       #ifdef USE_SFML
-      Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2+PPM*(y-Map_Y1));
+      Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1));
       Robot.SetGRotation(theta*180/PI);
       Robot.Draw(&Window);
       /* ------------------------ */

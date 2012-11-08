@@ -1,6 +1,7 @@
 #ifndef __MAPPER_HPP__
 #define __MAPPER_HPP__
 
+#include <iostream>
 #include <cmath>
 #include <vector>
 #include <string>
@@ -29,8 +30,8 @@ class OccupencyGrid {
       float LP0 ;
       float LPHigh;
       
-      int M() { return m; }
-      int N() { return n; }
+      int M() ;
+      int N() ;
       
       float cellProbobility(int i,int j) { return UNLOGIT(Map[i][j]); }
 
@@ -62,7 +63,9 @@ class LaserScanner {
       OccupencyGrid * grid;
       float x,y,theta;
 
+#ifdef USE_ROS
       void callback (const sensor_msgs::LaserScan::ConstPtr& msg);
+#endif
 
       ~LaserScanner() {}
       private:
