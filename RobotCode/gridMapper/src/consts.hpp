@@ -26,6 +26,8 @@
 #define Map_XRes 0.05 // meters/cell
 #define Map_YRes 0.05// meters/cell
 
+#define wall_tol RobotWidth/Map_XRes
+
 /* DONT CHANGE THESE THINGS */
 
 #define Map_Width ( Map_X2 - Map_X1 )
@@ -34,8 +36,8 @@
 #define MW Map_Width*PPM // Pool Width
 #define MH Map_Height*PPM // Pool Height 
 
-#define XPPC MW / (Map_Width/Map_YRes ) 
-#define YPPC MH / (Map_Height/Map_XRes ) 
+#define XPPC MW / (Map_Width/Map_XRes ) 
+#define YPPC MH / (Map_Height/Map_YRes ) 
 
 #define RW PPM*RobotWidth// Boat Width
 #define RL PPM*RobotLength// Boat Height

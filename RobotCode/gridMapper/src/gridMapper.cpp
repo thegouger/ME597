@@ -138,7 +138,6 @@ int main (int argc, char* argv[]) {
    Robot.AddChild(&Head);
    #endif
    //fillMap(0.5,0.5,1,1);   
-   //fillMap(-1,-1,-0.5,-0.5);   
    x = y = theta = 0 ;
    bool plan = false;; 
    OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
@@ -159,6 +158,11 @@ int main (int argc, char* argv[]) {
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
    #endif
 
+   float ang=0;
+   Grid.fillMap(0.55,0.8,0.25,1);   
+   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
+   Grid.fillMap(0.55,0.8,-1,-0.25);   
+
    /* ------------------------ */
 #ifdef USE_ROS
    while(ros::ok()) {// <-- Replace with ROS 
@@ -175,8 +179,8 @@ int main (int argc, char* argv[]) {
       //*
       plan = true;
       if (plan) {
-         vector<Vector2d> * path = Grid.findPath(x,y,1,1);
-         cout << path->size() << endl;
+         //vector<Vector2d> * path = Grid.findPath(x,y,0,0);
+         vector<Vector2d> * path = Grid.findPath2(x,y,theta,1.8,0);
          if (path == NULL) {
             plan = false;
          }
@@ -189,10 +193,11 @@ int main (int argc, char* argv[]) {
       #ifdef USE_ROS
       //path_pub.publish(Path);
       #endif
-      x = -1;
-      theta += PI/180 ;
-      y = 1*sin(2*theta);
-      //cout << Grid.M() << " " << Grid.N() << endl; 
+      x = -1.5;
+      theta = 0 ;
+      ang += 2*PI/180;
+      theta = ang;
+      y = 1*sin(2*ang);
 
       #ifdef USE_SFML
       Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1));

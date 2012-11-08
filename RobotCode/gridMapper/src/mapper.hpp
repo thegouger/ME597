@@ -25,6 +25,9 @@ class State {
    State() {};
    int i;
    int j;
+   float x;
+   float y;
+   float theta;
    float g;
    float f;
    State * parent;
@@ -60,6 +63,7 @@ class OccupencyGrid {
       void updateCell (int p,int i,int j) ;
 
       std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
+      std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY) ;
 
       ~OccupencyGrid();
    private:
@@ -77,6 +81,7 @@ class OccupencyGrid {
       float xRes,yRes;
 
       State * generateNode(int i, int j,int gi, int gj, float g, State * parent) ;
+      State * generateNode(float x, float y, float theta, float gx, float  gy, float g, State * parent) ;
       bool validPosition(int i, int j) ;
 };
 

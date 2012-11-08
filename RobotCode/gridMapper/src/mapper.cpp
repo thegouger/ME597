@@ -68,7 +68,7 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
 
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
-            Map[i][j] = LP0;
+            Map[i][j] = LPLow;
             //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
@@ -196,14 +196,12 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
     }
 }
 
-void OccupencyGrid::fillMap(float x1, float y1, float x2, float y2) {
-  /* 
-   for (int i=(y1-Map_BL_y)/Map_Y_Resolution; i<(y2-Map_BL_x)/Map_Y_Resolution; i++) {
-      for (int j=(x1-Map_BL_x)/Map_X_Resolution; j<(x2-Map_BL_x)/Map_X_Resolution; j++) {
+void OccupencyGrid::fillMap(float x1, float x2, float y1, float y2) {
+   for (int i=xtoi(x1); i<xtoi(x2); i++) {
+      for (int j=ytoj(y1); j<ytoj(y2); j++) {
          Map[i][j] = LPHigh;
       }
    }
-   */
 }
 
 OccupencyGrid::~OccupencyGrid(){
@@ -214,23 +212,43 @@ OccupencyGrid::~OccupencyGrid(){
 }
 /* --- Path Planning --- */
 
-/* Manhattan Distance Heuristic */
+/* Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return 0.5 * (pow(gi-i,2)+pow(gj-j,2));
+   return 0.5 * sqrt(pow(gi-i,2)+pow(gj-j,2));
+}
+
+float H2(float x, float y, float gx, float gy) {
+   return sqrt(pow(gx-x,2)+pow(gy-y,2));
 }
 
 bool OccupencyGrid::validPosition(int i, int j) {
    if ( i < 0 || i >= m) return false;
    if ( j < 0 || j >= n) return false;
-   if (Map[i][j] > LP0) return false; 
+
+   for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
+      for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
+         if (Map[a][b] > LP0) return false;
+      }
+   }
+
    return true ;
 }
 
 State * OccupencyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
    State * S = new State ;
    S->i = i;   S->j = j;
-   S->g = g + Map[i][j],2;
+   S->g = g + Map[i][j];
    S->f = g + H(i,j,gi,gj);
+   S->parent = parent;
+   return S;
+}
+
+State * OccupencyGrid::generateNode(float x, float y, float theta, float gx, float  gy, float g, State * parent) {
+   State * S = new State ;
+   S->x = x;   S->y = y;
+   S->theta = theta;
+   S->g = g; //+ Map[xtoi(x)][ytoj(y)];
+   S->f = g + H2(x,y,gx,gy);
    S->parent = parent;
    return S;
 }
@@ -254,7 +272,7 @@ OccupencyGrid::findPath(float sX,float sY,float gX,float gY) {
    while ( !pq.empty() ) {
       count++;
       if (count > m*n) {
-         return NULL;
+         break;
       }
       S = pq.top();
       pq.pop();
@@ -290,6 +308,97 @@ OccupencyGrid::findPath(float sX,float sY,float gX,float gY) {
    }
 
    /* Free all the memory */
+   while ( !pq.empty() ) {
+      S = pq.top();
+      pq.pop();
+      delete S;
+   }
+   while ( !freeList.empty() ) {
+      S = freeList.front();
+      freeList.pop_front();
+      delete S;
+   }
+
+   /* Return the Path */
+   return path;
+}
+
+float MAG(float x1,float x2,float y1,float y2) {
+   return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
+}
+
+std::vector<Vector2d> * 
+OccupencyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
+   State *S; 
+   float tol = 7*xRes;
+   float tx,ty,tang;
+   float v = 4*xRes;
+   float w = PI/12.0 ;
+
+   std::priority_queue<State*, std::vector<State*>, CompareState > pq;
+   std::list<State*> freeList;
+    
+   pq.push(generateNode(sX,sY,Theta,gX,gY,0,NULL));
+
+   /* Search for the goal Sate */
+   int count = 0 ;
+   while ( !pq.empty() ) {
+      count++;
+      if (count > 160*m*n) {
+         std::cout << "failed\n" ;
+         break;
+      }
+      S = pq.top();
+      pq.pop();
+      freeList.push_front(S);
+
+      if ( MAG(S->x,gX,S->y,gY) < tol ) {
+         std::cout << "goalReached\n";
+         break; // reached the goal state
+      }
+
+      /* Add Neighbours */
+      tang = S->theta; 
+      tx = S->x + v*cos(S->theta);
+      ty = S->y + v*sin(S->theta);
+      if ( validPosition(xtoi(tx),ytoj(ty)) ) {
+         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+      }
+//*
+      tang = S->theta + w ; 
+      tx = S->x + v*cos(S->theta);
+      ty = S->y + v*sin(S->theta);
+      if ( validPosition(xtoi(tx),ytoj(ty)) ) {
+         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+      }
+         
+      tang = S->theta - w; 
+      tx = S->x + v*cos(S->theta);
+      ty = S->y + v*sin(S->theta);
+      if ( validPosition(xtoi(tx),ytoj(ty)) ) {
+         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+      }
+  //*/       
+   }
+
+   /* Form the Path */
+   std::vector<Vector2d> *path = new std::vector<Vector2d>;
+   if (MAG(S->x,gX,S->y,gY) < tol ) {
+      while (S != NULL) {
+         Vector2d p; 
+         p.x = S->x;
+         p.y = S->y;
+         path->insert(path->begin(),p);
+         S = S->parent;
+      }
+   }
+
+   /* Free all the memory */
+   while ( !pq.empty() ) {
+      S = pq.top();
+      pq.pop();
+      delete S;
+   }
    while ( !freeList.empty() ) {
       S = freeList.front();
       freeList.pop_front();
