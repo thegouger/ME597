@@ -12,6 +12,7 @@
 
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
+#define PathThickness 2 // Pixels
 
 #define RobotLength 0.237 // meters
 #define RobotWidth 0.162  // meters

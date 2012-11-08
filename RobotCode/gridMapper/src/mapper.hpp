@@ -14,24 +14,36 @@
 #define UNLOGIT(p) (exp(p)/(1+exp(p)))
 #define PI 3.14159
 
+ 
+struct Vector2d {
+   float x;
+   float y;
+};
+
+class State {
+   public:
+   State() {};
+   int i;
+   int j;
+   float g;
+   float f;
+   State * parent;
+};
+
+struct CompareState : public std::binary_function<State*, State*, bool> {
+   bool operator()(const State* s1, const State* s2) const {
+      return s1->f > s2->f ;
+   }
+};
 
 class OccupencyGrid {
    public:
-      OccupencyGrid();
       OccupencyGrid(const float map_x1,const float map_x2,const float map_y1,const float map_y2,const float x_res,const float y_res);
 
       float ** Map;
-
-      float PLow ;
-      float P0 ;
-      float PHigh ;
-
-      float LPLow ;
-      float LP0 ;
-      float LPHigh;
       
-      int M() ;
-      int N() ;
+      int M() { return m; }
+      int N() { return n; }
       
       float cellProbobility(int i,int j) { return UNLOGIT(Map[i][j]); }
 
@@ -47,12 +59,25 @@ class OccupencyGrid {
 
       void updateCell (int p,int i,int j) ;
 
+      std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
+
       ~OccupencyGrid();
    private:
       int m,n;
 
+      float PLow ;
+      float P0 ;
+      float PHigh ;
+
+      float LPLow ;
+      float LP0 ;
+
+      float LPHigh;
       float x1,x2,y1,y2;
       float xRes,yRes;
+
+      State * generateNode(int i, int j,int gi, int gj, float g, State * parent) ;
+      bool validPosition(int i, int j) ;
 };
 
 class LaserScanner {

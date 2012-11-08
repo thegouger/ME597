@@ -1,7 +1,6 @@
 #include <iostream>
 #include <math.h>
 #include <list>
-#include <queue>
 #include <vector>
 #include <functional>
 
@@ -105,18 +104,20 @@ void drawMap(OccupencyGrid *grid,sf::RenderWindow * W) {
    
 }
 
-   /*
-void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
-   float cx, cy;
-   sf::Shape Cell;
-   for (int i=0; i<path->size(); i++) {
-      cy = path->at(i).x-Map_BL_x;
-      cx = path->at(i).y-Map_BL_y;
-      Cell = sf::Shape::Rectangle (X1+cx*XPPC, Y1+cy*YPPC, X1+(cx+1)*XPPC, Y1+YPPC*(cy+1),PathColor); 
-      W->Draw(Cell);
+   //*
+void drawPath(OccupencyGrid *grid,vector<Vector2d> * path, sf::RenderWindow *W) {
+   float x1,x2,y1,y2;
+   sf::Shape Line;
+   for (int i=1; i<path->size(); i++) {
+      x1 = grid->xtoi(path->at(i-1).x);
+      y1 = grid->ytoj(path->at(i-1).y);
+      x2 = grid->xtoi(path->at(i).x);
+      y2 = grid->ytoj(path->at(i).y);
+      Line = sf::Shape::Line(X1+x1*XPPC, Y1+y1*YPPC, X1+x2*XPPC, Y1+YPPC*y2,PathThickness,PathColor);
+      W->Draw(Line);
    }
 }
-   */
+
 #endif
 
 /* --- Main Function --- */
@@ -172,14 +173,16 @@ int main (int argc, char* argv[]) {
       drawMap(&Grid,&Window);
       #endif
       
-      /*
+      //*
+      plan = true;
       if (plan) {
-         vector<Vector2d> * path = findPath(1,1);
+         vector<Vector2d> * path = Grid.findPath(0,0,1,1);
+         cout << path->size() << endl;
          if (path == NULL) {
             plan = false;
          }
          else {
-            drawPath(path,&Window);
+            drawPath(&Grid,path,&Window);
             delete path;
          }
       }
@@ -187,8 +190,8 @@ int main (int argc, char* argv[]) {
       #ifdef USE_ROS
       //path_pub.publish(Path);
       #endif
-      x = -2;
-      y = 2;
+      x = -1;
+      y = 1;
       theta =0 ;
       //cout << Grid.M() << " " << Grid.N() << endl; 
 

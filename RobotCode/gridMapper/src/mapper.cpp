@@ -1,11 +1,14 @@
 #include <fstream> 
 #include <string>
+#include <vector>
+#include <list>
+#include <queue>
 
 #include "consts.hpp"
 #include "mapper.hpp"
 #include <sensor_msgs/LaserScan.h>
 
-//using namespace std;
+using namespace std;
 
 /* --- Mapping --- */
 
@@ -52,14 +55,12 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
    x2 = map_x2;
    y1 = map_y1;
    y2 = map_y2;
+   xRes = x_res;
+   yRes = y_res;
 
-   std::cout << x1 << " " << x2 << std::endl;
-   std::cout << y1 << " " << y2 << std::endl;
-   std::cout << x_res << " " << y_res << std::endl;
+   m = (int)((x2-x1)/xRes);
+   n = (int)((y2-y1)/yRes); 
 
-   m = (int)((x2-x1)/x_res);
-   n = (int)((y2-y1)/y_res); 
-   std::cout << m << " " << n << std::endl;
    Map = new float*[m];
    for(int i=0; i<m; i++){
       Map[i] = new float[n];
@@ -72,8 +73,6 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
        }
    }
 }
-int OccupencyGrid::M() { return m; }
-int OccupencyGrid::N() { return n; }
 
 float OccupencyGrid::itox (const int i) {
    return x1 + i*xRes + xRes/2.0;
@@ -212,4 +211,91 @@ OccupencyGrid::~OccupencyGrid(){
       delete Map[i];
    }
    delete Map;
+}
+/* --- Path Planning --- */
+
+/* Manhattan Distance Heuristic */
+float H(int i, int j, int gi, int gj) {
+   return 0.5 * (pow(gi-i,2)+pow(gj-j,2));
+}
+
+bool OccupencyGrid::validPosition(int i, int j) {
+   if ( i < 0 || i >= m) return false;
+   if ( j < 0 || j >= n) return false;
+   if (Map[i][j] > LP0) return false; 
+   return true ;
+}
+
+State * OccupencyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
+   State * S = new State ;
+   S->i = i;   S->j = j;
+   S->g = g + Map[i][j],2;
+   S->f = g + H(i,j,gi,gj);
+   S->parent = parent;
+   return S;
+}
+
+std::vector<Vector2d> * 
+OccupencyGrid::findPath(float sX,float sY,float gX,float gY) {
+   int si = xtoi(sX);
+   int sj = ytoj(sY);
+   int gi = xtoi(gX);
+   int gj = ytoj(gY);
+   
+   State *S; 
+
+   std::priority_queue<State*, std::vector<State*>, CompareState > pq;
+   std::list<State*> freeList;
+    
+   pq.push(generateNode(si,sj,gi,gj,0,NULL));
+
+   /* Search for the goal Sate */
+   int count = 0 ;
+   while ( !pq.empty() ) {
+      count++;
+      if (count > m*n) {
+         return NULL;
+      }
+      S = pq.top();
+      pq.pop();
+      freeList.push_front(S);
+
+      if (S->i == gi && S->j == gj) break; // reached the goal state
+
+      /* Add Neighbours */
+      if (validPosition(S->i+1,S->j)) {
+         pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
+      }
+      if (validPosition(S->i-1,S->j)) {
+         pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
+      }
+      if (validPosition(S->i,S->j+1)) {
+         pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
+      }
+      if (validPosition(S->i,S->j-1)) {
+         pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
+      }
+   }
+
+   /* Form the Path */
+   std::vector<Vector2d> *path = new std::vector<Vector2d>;
+   if (S != NULL && S->i == gi && S->j == gj) {
+      while (S != NULL) {
+         Vector2d p; 
+         p.x = itox(S->i);
+         p.y = jtoy(S->j);
+         path->insert(path->begin(),p);
+         S = S->parent;
+      }
+   }
+
+   /* Free all the memory */
+   while ( !freeList.empty() ) {
+      S = freeList.front();
+      freeList.pop_front();
+      delete S;
+   }
+
+   /* Return the Path */
+   return path;
 }
