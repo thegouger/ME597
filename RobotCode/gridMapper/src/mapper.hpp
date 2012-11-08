@@ -20,6 +20,14 @@ class OccupencyGrid {
       OccupencyGrid(const float map_x1,const float map_x2,const float map_y1,const float map_y2,const float x_res,const float y_res);
 
       float ** Map;
+
+      float PLow ;
+      float P0 ;
+      float PHigh ;
+
+      float LPLow ;
+      float LP0 ;
+      float LPHigh;
       
       int M() { return m; }
       int N() { return n; }
@@ -44,15 +52,6 @@ class OccupencyGrid {
 
       float x1,x2,y1,y2;
       float xRes,yRes;
-      
-      /* Set Probibilites */
-      float PLow ;
-      float P0 ;
-      float PHigh ;
-
-      float LPLow ;
-      float LP0 ;
-      float LPHigh;
 };
 
 class LaserScanner {

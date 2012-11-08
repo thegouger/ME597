@@ -45,6 +45,9 @@ bool update_map;
 float x,y,theta;
 
 #ifdef USE_ROS
+void scannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg) { 
+   scanner.callback(msg);
+}
 void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
    x = msg->linear.x;
    y = msg->linear.y;
@@ -54,12 +57,18 @@ void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
    y = msg->Y;
    theta = msg->Yaw;
+   scanner.x = x;
+   scanner.y = y;
+   scanner.theta = theta;
 }
 #endif
 
 /* --- Graphics Related Functions --- */
 #ifdef USE_SFML
 void  colorTransform (float p,sf::Color & C) {
+   float P0 = 0.5;
+   float PHigh = 0.7;
+   float PLow = 0.3; // <- will fix later
    if (p > PHigh) {
       C = Full;
    }
@@ -82,7 +91,7 @@ void  colorTransform (float p,sf::Color & C) {
 }
 
 /* Here is where we draw the map */
-void drawMap(OccupencyMap *grid,sf::RenderWindow * W) {
+void drawMap(OccupencyGrid *grid,sf::RenderWindow * W) {
    sf::Shape Cell;
    sf::Color C; 
    W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT,X2+WT,Y2+WT,Border));
@@ -96,8 +105,8 @@ void drawMap(OccupencyMap *grid,sf::RenderWindow * W) {
    
 }
 
-void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
    /*
+void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
    float cx, cy;
    sf::Shape Cell;
    for (int i=0; i<path->size(); i++) {
@@ -106,8 +115,8 @@ void drawPath(vector<Vector2d> * path, sf::RenderWindow *W) {
       Cell = sf::Shape::Rectangle (X1+cx*XPPC, Y1+cy*YPPC, X1+(cx+1)*XPPC, Y1+YPPC*(cy+1),PathColor); 
       W->Draw(Cell);
    }
-   */
 }
+   */
 #endif
 
 /* --- Main Function --- */
@@ -118,26 +127,9 @@ int main (int argc, char* argv[]) {
       Window.SetFramerateLimit(MAXFPS) ;
    #endif
 
-   #ifdef USE_ROS
-   ros::init(argc, argv, "gridMapper");
-   ROS_INFO("Combined Mapper and Path Planner");
-
-   ros::NodeHandle nodeHandle;
-
-   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
-
-   std_msgs::Float32MultiArray Path ;
-
-   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 , LIDAR.callback);
-   ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
-   //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
-   ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
-
-   #endif
-   scanner.grid = &Grid;
 
    /* ----- Setup ----- */
-   update_map = true;
+   x = y = theta = 0 ;
    bool plan = false;; 
    Transform Robot,Head;
    Head.Rect(0,0,RH/3,RH/5,Unknown);
@@ -150,6 +142,23 @@ int main (int argc, char* argv[]) {
    //fillMap(0.5,0.5,1,1);   
    //fillMap(-1,-1,-0.5,-0.5);   
 
+   #ifdef USE_ROS
+   ros::init(argc, argv, "gridMapper");
+   ROS_INFO("Combined Mapper and Path Planner");
+
+   ros::NodeHandle nodeHandle;
+
+   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
+   scanner.grid = &Grid;
+
+   std_msgs::Float32MultiArray Path ;
+
+   ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 ,scannerCallback);
+   ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
+   //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
+   ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
+
+   #endif
    /* ------------------------ */
 #ifdef USE_ROS
    while(ros::ok()) {// <-- Replace with ROS 
@@ -160,7 +169,7 @@ int main (int argc, char* argv[]) {
       /* ------ Loop ------ */
       #ifdef USE_SFML
       Window.Clear(BG) ;
-      drawMap(&Window);
+      drawMap(&Grid,&Window);
       #endif
       
       /*
@@ -177,9 +186,6 @@ int main (int argc, char* argv[]) {
       //*/
       #ifdef USE_ROS
       //path_pub.publish(Path);
-      scanner.x = x;
-      scanner.y = y;
-      scanner.theta = theta;
       #endif
 
       #ifdef USE_SFML
@@ -201,10 +207,10 @@ int main (int argc, char* argv[]) {
                update_map = !update_map;
             }
             if(Event.Key.Code == sf::Key::S) {
-               saveMap();
+               Grid.saveMap("Map");
             }
             if(Event.Key.Code == sf::Key::L) {
-               loadMap();
+               Grid.loadMap("Map");
             }
          }
       }   
