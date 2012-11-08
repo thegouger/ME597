@@ -163,10 +163,8 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
             // range and phi to current cell
             r = sqrt((pow(cx - x, 2)) + pow(cy - y, 2));
 
-            phi = atan2(cy - y, cx - x) - theta  ;
-            phi = fmod(atan2(cy - y, cx - x) - theta+PI,2*PI)-PI;
-            phi = acos( ((cy-y)*sin(theta) + (cx-x)*cos(theta))/sqrt(pow(cx-x,2)+pow(cy-y,2)) );
-            phi *= (cy-y)*cos(theta) - (cx-x)*sin(theta) > 0 ? 1 : -1 ; 
+            phi = acos( ((cy-y)*sin(theta) + (cx-x)*cos(theta) )/sqrt(pow(cx-x,2)+pow(cy-y,2)) );
+            phi *= ( (cy-y)*cos(theta) - (cx-x)*sin(theta) ) > 0 ? 1 : -1 ; 
 
             // Most pertinent laser measurement for this cell
             int k = getMinIndex(phi);
