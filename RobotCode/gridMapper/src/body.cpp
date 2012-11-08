@@ -1,8 +1,6 @@
-
 #include <SFML/Graphics.hpp>
 #include "consts.hpp"
 #include "body.hpp"
-
 
 LinkedList::LinkedList () {
    head = tail = NULL ;

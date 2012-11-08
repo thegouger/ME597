@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #ifdef USE_ROS
-   #include<ros/ros.h>
+   #include <ros/ros.h>
    #include <sensor_msgs/LaserScan.h>
 #endif
 
@@ -39,16 +39,16 @@ struct CompareState : public std::binary_function<State*, State*, bool> {
    }
 };
 
-class OccupencyGrid {
+class OccupancyGrid {
    public:
-      OccupencyGrid(const float map_x1,const float map_x2,const float map_y1,const float map_y2,const float x_res,const float y_res);
+      OccupancyGrid(const float map_x1,const float map_x2,const float map_y1,const float map_y2,const float x_res,const float y_res);
 
       float ** Map;
       
       int M() { return m; }
       int N() { return n; }
       
-      float cellProbobility(int i,int j) { return UNLOGIT(Map[i][j]); }
+      float cellProbability(int i,int j) { return UNLOGIT(Map[i][j]); }
 
       float itox (const int i) ;
       int xtoi (const float x) ;
@@ -65,7 +65,7 @@ class OccupencyGrid {
       std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
       std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY) ;
 
-      ~OccupencyGrid();
+      ~OccupancyGrid();
    private:
       int m,n;
 
@@ -88,9 +88,9 @@ class OccupencyGrid {
 class LaserScanner {
    public:
       LaserScanner();
-      LaserScanner(OccupencyGrid * );
+      LaserScanner(OccupancyGrid * );
 
-      OccupencyGrid * grid;
+      OccupancyGrid * grid;
       float x,y,theta;
 
 #ifdef USE_ROS

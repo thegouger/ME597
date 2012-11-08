@@ -25,7 +25,7 @@ LaserScanner::LaserScanner(){
    grid = NULL ;
 }
 
-LaserScanner::LaserScanner(OccupencyGrid * Grid){
+LaserScanner::LaserScanner(OccupancyGrid * Grid){
    LaserScanner();
    grid = Grid ;
 }
@@ -43,7 +43,7 @@ void LaserScanner::callback(const sensor_msgs::LaserScan::ConstPtr& msg)
 }
 #endif
 
-OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2,float x_res,float y_res) {
+OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2,float x_res,float y_res) {
    PLow = 0.3;
    P0 = 0.5;
    PHigh = 0.7;
@@ -74,29 +74,29 @@ OccupencyGrid::OccupencyGrid(float map_x1,float map_x2,float map_y1,float map_y2
    }
 }
 
-float OccupencyGrid::itox (const int i) {
+float OccupancyGrid::itox (const int i) {
    return x1 + i*xRes + xRes/2.0;
 }
 
-int OccupencyGrid::xtoi (const float x) {
+int OccupancyGrid::xtoi (const float x) {
    float i = (x-x1-xRes/2.0)/xRes;
    if ( fabs(i-ceil(i)) < fabs(i-floor(i)) )
       return (int)ceil(i);
    return (int)floor(i);
 }
 
-float OccupencyGrid::jtoy (const int j) {
+float OccupancyGrid::jtoy (const int j) {
    return y1 + j*yRes + yRes/2.0;
 }
 
-int OccupencyGrid::ytoj (const float y) {
+int OccupancyGrid::ytoj (const float y) {
    float j = (y-y1-yRes/2.0)/yRes;
    if ( fabs(j-ceil(j)) < fabs(j-floor(j)) )
       return (int)ceil(j);
    return (int)floor(j);
 }
 
-void OccupencyGrid::loadMap(std::string fileName) {
+void OccupancyGrid::loadMap(std::string fileName) {
    std::ifstream infile;
    infile.open("MapLoad");
     for (int i=0; i<m; i++) {
@@ -107,7 +107,7 @@ void OccupencyGrid::loadMap(std::string fileName) {
     }
 }
 
-void OccupencyGrid::saveMap(std::string fileName) {
+void OccupancyGrid::saveMap(std::string fileName) {
    std::ofstream outfile;
    outfile.open("MapSave");
     for (int i=0; i<m; i++) {
@@ -119,7 +119,7 @@ void OccupencyGrid::saveMap(std::string fileName) {
     }
 }
 
-void OccupencyGrid::updateCell (int p,int i,int j) {
+void OccupancyGrid::updateCell (int p,int i,int j) {
     if (Map[i][j] < 5 && Map[i][j] > -5) { // <-- update with less stupid numbers
          Map[i][j] -= LP0;
          Map[i][j] += p<0 ? LPLow : (p>0 ? LPHigh : LP0 ) ;
@@ -196,7 +196,7 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
     }
 }
 
-void OccupencyGrid::fillMap(float x1, float x2, float y1, float y2) {
+void OccupancyGrid::fillMap(float x1, float x2, float y1, float y2) {
    for (int i=xtoi(x1); i<xtoi(x2); i++) {
       for (int j=ytoj(y1); j<ytoj(y2); j++) {
          Map[i][j] = LPHigh;
@@ -204,7 +204,7 @@ void OccupencyGrid::fillMap(float x1, float x2, float y1, float y2) {
    }
 }
 
-OccupencyGrid::~OccupencyGrid(){
+OccupancyGrid::~OccupancyGrid(){
    for (int i=0; i<m; i++) {
       delete Map[i];
    }
@@ -221,7 +221,7 @@ float H2(float x, float y, float gx, float gy) {
    return sqrt(pow(gx-x,2)+pow(gy-y,2));
 }
 
-bool OccupencyGrid::validPosition(int i, int j) {
+bool OccupancyGrid::validPosition(int i, int j) {
    if ( i < 0 || i >= m) return false;
    if ( j < 0 || j >= n) return false;
 
@@ -234,7 +234,7 @@ bool OccupencyGrid::validPosition(int i, int j) {
    return true ;
 }
 
-State * OccupencyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
+State * OccupancyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
    State * S = new State ;
    S->i = i;   S->j = j;
    S->g = g + Map[i][j];
@@ -243,7 +243,7 @@ State * OccupencyGrid::generateNode(int i, int j,int gi, int gj, float g, State 
    return S;
 }
 
-State * OccupencyGrid::generateNode(float x, float y, float theta, float gx, float  gy, float g, State * parent) {
+State * OccupancyGrid::generateNode(float x, float y, float theta, float gx, float  gy, float g, State * parent) {
    State * S = new State ;
    S->x = x;   S->y = y;
    S->theta = theta;
@@ -254,7 +254,7 @@ State * OccupencyGrid::generateNode(float x, float y, float theta, float gx, flo
 }
 
 std::vector<Vector2d> * 
-OccupencyGrid::findPath(float sX,float sY,float gX,float gY) {
+OccupancyGrid::findPath(float sX,float sY,float gX,float gY) {
    int si = xtoi(sX);
    int sj = ytoj(sY);
    int gi = xtoi(gX);
@@ -328,7 +328,7 @@ float MAG(float x1,float x2,float y1,float y2) {
 }
 
 std::vector<Vector2d> * 
-OccupencyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
+OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    State *S; 
    float tol = 7*xRes;
    float tx,ty,tang;

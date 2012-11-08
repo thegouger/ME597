@@ -51,6 +51,9 @@ void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) {
    x = msg->linear.x;
    y = msg->linear.y;
    theta = msg->angular.z;
+   scanner.x = x;
+   scanner.y = y;
+   scanner.theta = theta;
 }
 void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
@@ -90,13 +93,13 @@ void  colorTransform (float p,sf::Color & C) {
 }
 
 /* Here is where we draw the map */
-void drawMap(OccupencyGrid *grid,sf::RenderWindow * W) {
+void drawMap(OccupancyGrid *grid,sf::RenderWindow * W) {
    sf::Shape Cell;
    sf::Color C; 
    W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT,X2+WT,Y2+WT,Border));
    for (int i=0; i<grid->M(); i++) {
       for (int j=0; j<grid->N(); j++) {
-         colorTransform(grid->cellProbobility(i,j),C);
+         colorTransform(grid->cellProbability(i,j),C);
          Cell = sf::Shape::Rectangle (X1+i*XPPC, Y2-j*YPPC, X1+(i+1)*XPPC, Y2-YPPC*(j+1),C); 
          W->Draw(Cell);
       }
@@ -104,7 +107,7 @@ void drawMap(OccupencyGrid *grid,sf::RenderWindow * W) {
 }
 
    //*
-void drawPath(OccupencyGrid *grid,vector<Vector2d> * path, sf::RenderWindow *W) {
+void drawPath(OccupancyGrid *grid,vector<Vector2d> * path, sf::RenderWindow *W) {
    float x1,x2,y1,y2;
    sf::Shape Line;
    for (int i=1; i<path->size(); i++) {
@@ -140,7 +143,7 @@ int main (int argc, char* argv[]) {
    //fillMap(0.5,0.5,1,1);   
    x = y = theta = 0 ;
    bool plan = false;; 
-   OccupencyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
+   OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
 
    #ifdef USE_ROS
    ros::init(argc, argv, "gridMapper");
