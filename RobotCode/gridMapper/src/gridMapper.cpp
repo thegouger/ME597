@@ -155,20 +155,20 @@ int main (int argc, char* argv[]) {
 
    std_msgs::Float32MultiArray Path ;
 
-   //ros::Subscriber scanner_sub = nodeHandle.subscribe("scan", 1 ,scannerCallback);
+   ros::Subscriber scanner_sub = nodeHandle.subscribe("base_scan/scan", 1 ,scannerCallback);
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
    #endif
 
-   Grid.fillMap(0.55,0.8,0.25,1);   
-   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
-   Grid.fillMap(0.55,0.8,-1,-0.25);   
+   // Grid.fillMap(0.55,0.8,0.25,1);   
+   // Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
+   // Grid.fillMap(0.55,0.8,-1,-0.25);   
 
    /* ------------------------ */
 #ifdef USE_ROS
    while(ros::ok()) {// <-- Replace with ROS 
-      //ros::spinOnce();
+      ros::spinOnce();
 #else
    while(1) {
 #endif 
@@ -197,10 +197,10 @@ int main (int argc, char* argv[]) {
       #endif
 
       /* ~~ Test Code ~~ */
-      float v = .1;
-      x += v*cos(theta);
-      y += v*sin(theta);
-      theta += 10*PI/180.0;
+     //  float v = .1;
+     //  x += v*cos(theta);
+     //  y += v*sin(theta);
+     //  theta += 10*PI/180.0;
       /* ~~ End Test ~~ */
 
       #ifdef USE_SFML
