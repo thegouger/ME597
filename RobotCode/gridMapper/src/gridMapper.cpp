@@ -17,6 +17,12 @@
    #include <std_msgs/Float32MultiArray.h>
 #endif
 
+#define USE_SIMULATOR
+
+#ifdef USE_SIMULATOR
+#include <nav_msgs/Odometry.h>
+#endif
+
 using namespace std;
 
 #include "mapper.hpp"
@@ -47,6 +53,17 @@ float x,y,theta;
 void scannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg) { 
    scanner.callback(msg);
 }
+#ifdef USE_SIMULATOR
+void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+   x = msg->pose.pose.position.x;
+   y = msg->pose.pose.position.y;
+   theta = msg->pose.pose.orientation.z;
+   scanner.x = x;
+   scanner.y = y;
+   scanner.theta = theta;
+}
+#else
 void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
    x = msg->linear.x;
    y = msg->linear.y;
@@ -55,6 +72,7 @@ void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) {
    scanner.y = y;
    scanner.theta = theta;
 }
+#endif
 void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
    y = msg->Y;
@@ -159,6 +177,10 @@ int main (int argc, char* argv[]) {
    ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
+   #ifdef USE_SIMULATOR
+   ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback); 
+   #endif
+
    #endif
 
    // Grid.fillMap(0.55,0.8,0.25,1);   
