@@ -112,6 +112,10 @@ int main(int argc, char* argv[])
 
       // publish results
       cmd_vel.angular.z = steer_angle;
+
+      cmd_vel.linear.x = 1.25f;
+      cmd_vel.angular.z = 0.7f;
+      
       cmd_vel_pub.publish(cmd_vel);
 
       // set old values

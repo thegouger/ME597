@@ -114,7 +114,7 @@
    
     <!-- the left Ackermann bar -->
     <joint name="front_left_bar_joint" type="revolute" >
-        <limit lower="-0.5" upper="0.5" effort="100" velocity="10" />
+        <limit lower="-0.9" upper="0.9" effort="100" velocity="10" />
         <axis xyz="0 0 1" />
         <parent link="front_link" />
         <child link="front_left_bar_link" />
@@ -143,7 +143,7 @@
 
     <!-- the right Ackermann bar -->
     <joint name="front_right_bar_joint" type="revolute" >
-        <limit lower="-0.5" upper="0.5" effort="100" velocity="10" />
+        <limit lower="-0.9" upper="0.9" effort="100" velocity="10" />
         <axis xyz="0 0 1" />
         <parent link="front_link" />
         <child link="front_right_bar_link" />
@@ -172,7 +172,7 @@
 
 	<!-- the Ackerman bar -->
     <joint name="ackermann_joint" type="revolute" >
-        <limit lower="-0.5" upper="0.5" effort="100" velocity="10" />
+        <limit lower="-0.9" upper="0.9" effort="100" velocity="10" />
         <axis xyz="0 0 1" />
         <parent link="steer_link" />
         <child link="ackermann_bar_link" />
@@ -219,7 +219,7 @@
 
  <!-- a link aligned with the steer direction -->
     <joint name="steer_joint" type="revolute" >
-        <limit lower="-0.5" upper="0.5" effort="100" velocity="10" />
+        <limit lower="-0.9" upper="0.9" effort="100" velocity="10" />
         <axis xyz="0 0 1" />
         <parent link="front_link" />
         <child link="steer_link" />

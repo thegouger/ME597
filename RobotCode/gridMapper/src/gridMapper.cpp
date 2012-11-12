@@ -59,6 +59,11 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    x = msg->pose.pose.position.x;
    y = msg->pose.pose.position.y;
    theta = msg->pose.pose.orientation.z;
+   double roll, pitch;
+
+   // simulator gives us a quaternion
+   float q_x = msg->pose.pose.orientation.x, q_y = msg->pose.pose.orientation.y, q_z = msg->pose.pose.orientation.z, q_w = msg->pose.pose.orientation.w;
+   theta = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
    scanner.x = x;
    scanner.y = y;
    scanner.theta = theta;

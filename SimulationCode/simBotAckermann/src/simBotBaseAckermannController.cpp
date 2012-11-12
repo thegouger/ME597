@@ -292,9 +292,9 @@ void AckermannPlugin::UpdateChild()
 	joints[BACKRIGHT]->SetVelocity(0, wheelSpeed[BACKRIGHT] / (wheelDiameter / 2.0));
 
    // servo imitation code
-   float diff = rot_ * 20.0f - steerAngle; // get diff between current and goal, assumes 20 degrees for max turning steering angle
+   float diff = rot_ * 40.0f - steerAngle; // get diff between current and goal, assumes 20 degrees for max turning steering angle
    if (fabs( diff ) > 0.1) // check against threshold
-       joints[FRONTSTEER]->SetVelocity(0 , diff > 0.0 ? 40.0 : -40.0); // set to max velocity possible in necessary direction
+       joints[FRONTSTEER]->SetVelocity(0 , diff > 0.0 ? 80.0 : -80.0); // set to max velocity possible in necessary direction
    steerAngle = joints[FRONTSTEER]->GetAngle( 0 ).GetAsDegree(); // save current angle
 
 	//ROS_INFO("Applied Angular Velocity=%2.4f",  wheelSpeed[FRONTSTEER] / 2.0);
