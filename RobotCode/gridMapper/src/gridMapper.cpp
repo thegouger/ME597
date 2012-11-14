@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "consts.hpp"
+
 #ifdef USE_SFML
    #include <SFML/Graphics.hpp>
    #include "body.hpp"
@@ -16,11 +17,8 @@
    #include <sensor_msgs/LaserScan.h>
    #include <std_msgs/Float32MultiArray.h>
 #endif
-
-#define USE_SIMULATOR
-
 #ifdef USE_SIMULATOR
-#include <nav_msgs/Odometry.h>
+   #include <nav_msgs/Odometry.h>
 #endif
 
 using namespace std;
@@ -130,15 +128,15 @@ void drawMap(OccupancyGrid *grid,sf::RenderWindow * W) {
 }
 
    //*
-void drawPath(OccupancyGrid *grid,vector<Vector2d> * path, sf::RenderWindow *W) {
+void drawPath(const vector<Vector2d> * path,const sf::Color &C,sf::RenderWindow *W) {
    float x1,x2,y1,y2;
    sf::Shape Line;
    for (int i=1; i<path->size(); i++) {
-      x1 = grid->xtoi(path->at(i-1).x);
-      y1 = grid->ytoj(path->at(i-1).y);
-      x2 = grid->xtoi(path->at(i).x);
-      y2 = grid->ytoj(path->at(i).y);
-      Line = sf::Shape::Line(X1+x1*XPPC, Y2-y1*YPPC, X1+x2*XPPC, Y2-YPPC*y2,PathThickness,PathColor);
+      x1 = (path->at(i-1).x);
+      y1 = (path->at(i-1).y);
+      x2 = (path->at(i).x);
+      y2 = (path->at(i).y);
+      Line = sf::Shape::Line(X1+(x1-Map_X1)*PPM, Y2-(y1-Map_Y1)*PPM, X1+(x2-Map_X1)*PPM, Y2-(y2-Map_Y1)*PPM,PathThickness,C);
       W->Draw(Line);
    }
 }
@@ -187,10 +185,12 @@ int main (int argc, char* argv[]) {
    #endif
 
    #endif
-
-   // Grid.fillMap(0.55,0.8,0.25,1);   
-   // Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
-   // Grid.fillMap(0.55,0.8,-1,-0.25);   
+   
+   /*/ Test Obsticals
+   Grid.fillMap(0.55,0.8,0.25,1);   
+   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
+   Grid.fillMap(0.55,0.8,-1,-0.25);   
+   //*/
 
    /* ------------------------ */
 #ifdef USE_ROS
@@ -206,28 +206,35 @@ int main (int argc, char* argv[]) {
       #endif
       
       //*
-      plan = false;
       if (plan) {
-         //vector<Vector2d> * path = Grid.findPath(x,y,0,0);
-         vector<Vector2d> * path = Grid.findPath2(x,y,theta,1.8,0);
-         if (path == NULL) {
-            plan = false;
-         }
-         else {
-            drawPath(&Grid,path,&Window);
-            delete path;
-         }
+         vector<Vector2d> * path;
+
+         /* Goal Position */
+         float gx = 1.8; // m
+         float gy = 0; // m
+
+         /* Wavefront */
+         path = Grid.findPath(x,y,gx,gy);
+         drawPath(path,Unknown,&Window);
+         delete path;
+
+         /* A* */
+         path = Grid.findPath2(x,y,theta,gx,gy);
+         drawPath(path,PathColor,&Window);
+         delete path;
       }
       //*/
       #ifdef USE_ROS
       //path_pub.publish(Path);
       #endif
 
-      /* ~~ Test Code ~~ */
-     //  float v = .1;
-     //  x += v*cos(theta);
-     //  y += v*sin(theta);
-     //  theta += 10*PI/180.0;
+      /* ~~ Test Code ~~ 
+       float v = .1;
+       x += v*cos(theta);
+       y += v*sin(theta);
+       x = -1.8;
+       theta += 10*PI/180.0;
+       theta = 0 ;
       /* ~~ End Test ~~ */
 
       #ifdef USE_SFML
