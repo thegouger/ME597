@@ -47,6 +47,10 @@ bool update_map;
 /* node infos */
 float x,y,theta;
 
+/* Goal Position */
+float gx; // m
+float gy; // m
+
 #ifdef USE_ROS
 void scannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg) { 
    scanner.callback(msg);
@@ -163,6 +167,7 @@ int main (int argc, char* argv[]) {
    #endif
    //fillMap(0.5,0.5,1,1);   
    x = y = theta = 0 ;
+   gx = gy = 0;
    bool plan = false;; 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
 
@@ -174,14 +179,15 @@ int main (int argc, char* argv[]) {
 
    scanner.grid = &Grid;
 
-   std_msgs::Float32MultiArray Path ;
+   geometry_msgs::Twist WayPoint ;
+   ros::Publisher waypoint_pub = nodeHandle.advertise<geometry_msgs::Twist>("waypoint", 1);
 
    ros::Subscriber scanner_sub = nodeHandle.subscribe("base_scan/scan", 1 ,scannerCallback);
-   ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
-   //ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
-   ros::Publisher path_pub = nodeHandle.advertise<std_msgs::Float32MultiArray>("path", 1);
+   //ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    #ifdef USE_SIMULATOR
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback); 
+   #else
+   ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
    #endif
 
    #endif
@@ -209,23 +215,32 @@ int main (int argc, char* argv[]) {
       if (plan) {
          vector<Vector2d> * path;
 
-         /* Goal Position */
-         float gx = 1.8; // m
-         float gy = 0; // m
 
          /* Wavefront */
+         #if PATH_PLANNER<1 || PATH_PLANNER >1
          path = Grid.findPath(x,y,gx,gy);
          drawPath(path,Unknown,&Window);
+         if ( path->size() > 1 ) {
+            WayPoint.linear.x = path->at(1).x;
+            WayPoint.linear.y = path->at(1).y;
+         }
          delete path;
-
+         #endif
+         
          /* A* */
+         #if PATH_PLANNER>0
          path = Grid.findPath2(x,y,theta,gx,gy);
          drawPath(path,PathColor,&Window);
+         if ( path->size() > 5 ) {
+            WayPoint.linear.x = path->at(1).x;
+            WayPoint.linear.y = path->at(1).y;
+         }
          delete path;
+         #endif
       }
       //*/
       #ifdef USE_ROS
-      //path_pub.publish(Path);
+      waypoint_pub.publish(WayPoint);
       #endif
 
       /* ~~ Test Code ~~ 
@@ -248,6 +263,15 @@ int main (int argc, char* argv[]) {
          if (Event.Type == sf::Event::Closed) {
              Window.Close();
          }   
+         if (Event.Type == sf::Event::MouseButtonPressed) {
+            if (Event.MouseButton.Button == sf::Mouse::Right) {
+               const sf::Input& Input = Window.GetInput();
+               float MouseX = Input.GetMouseX();
+               float MouseY = Input.GetMouseY();
+               gx = (MouseX-X1)/PPM + Map_X1;
+               gy = (Y2-MouseY)/PPM + Map_Y1;
+            }
+         }
          if (Event.Type == sf::Event::KeyPressed) {
             if(Event.Key.Code == sf::Key::A) {
                plan = !plan;

@@ -13,6 +13,11 @@
 #include <boost/random/normal_distribution.hpp>
 
 #define ENCODERS 1
+#define USE_SIM
+
+#ifdef USE_SIM
+#include <nav_msgs/Odometry.h>
+#endif
 
 using namespace Eigen;
 
@@ -20,6 +25,9 @@ std::ofstream outfile;
 const float MAX_OUTPUT_SPEED = 100.0f;
 
 const float L = 0.237;
+
+// desired waypoints
+Vector2f waypoints[4]; // 4
 
 // Measurements
 Vector3f Y_noiseless;
@@ -53,6 +61,24 @@ Eigen::Matrix3f C( Matrix3f().Identity() );
 
 bool   position_acquired; // used to determine whether the IPS has given us a position
 double old_time;
+
+#ifdef USE_SIM
+void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+   float x,y,Theta;
+      x = msg->pose.pose.position.x;
+         y = msg->pose.pose.position.y;
+            Theta = msg->pose.pose.orientation.z;
+               double roll, pitch;
+
+                  // simulator gives us a quaternion
+                     float q_x = msg->pose.pose.orientation.x, q_y = msg->pose.pose.orientation.y, q_z = msg->pose.pose.orientation.z, q_w = msg->pose.pose.orientation.w;
+                        Theta = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
+      mu(0) = x;
+      mu(1) = y;
+      mu(2) = Theta;
+}
+#endif
 
 void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 {
@@ -113,6 +139,15 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 
 }
 
+void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
+   waypoints[0](0) = waypoints[1](0);
+   waypoints[0](1) = waypoints[1](1);
+
+   waypoints[1](0) = msg->linear.x;
+   waypoints[1](1) = msg->linear.y;
+}
+
+
 #ifdef ENCODERS
 void encoderCallback(const clearpath_horizon::EncodersConstPtr& msg)
 {
@@ -135,8 +170,8 @@ int main(int argc, char* argv[])
    // desired travel velocity
    double desired_velocity = 0.200; // vel in m/s f
 
-   // desired waypoints
-   Vector2f waypoints[4]; // 4
+   //#define LAB1
+   #define LAB2
    waypoints[0](0) = -1.01f; waypoints[0](1) = -.57f;
    waypoints[1](0) = 1.46f;  waypoints[1](1) = -.57f;
    waypoints[2](0) = 1.46f;  waypoints[2](1) = 1.45f;
@@ -169,6 +204,13 @@ int main(int argc, char* argv[])
    ros::Publisher cmd_vel_pub = nodeHandle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
    ros::Publisher estimate_pub = nodeHandle.advertise<geometry_msgs::Twist>("estimate", 1);
 
+   #ifdef USE_SIM
+   ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback);
+   position_acquired = true;
+   #endif
+   #ifdef LAB2
+   ros::Subscriber waypoint_sub = nodeHandle.subscribe("waypoint",1,waypointCallback);
+   #endif
    #ifdef ENCODERS
    ros::Subscriber encoder_sub = nodeHandle.subscribe("/data/encoders", 1, encoderCallback);
    #endif
@@ -212,13 +254,14 @@ int main(int argc, char* argv[])
       cmd_vel.linear.x = vel_output;
 
       // Steering controller
+#ifdef LAB1
       if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.5)
       {
          //outfile << "Acheived waypoint: " << way_state << "\n";
          ROS_INFO("Acheived waypoint: %d", way_state);
          way_state = way_state % 4 + 1;
       }
-
+#endif
       float x0,y0,x1,y1,x2,y2;
       x0 = mu(0);
       y0 = mu(1);
@@ -246,6 +289,12 @@ int main(int argc, char* argv[])
       cmd_vel.angular.z = 100.0f; // steer_angle_normalized;
 
       // publish results
+      #ifdef LAB2
+      if (waypoints[1](1) == 0.0 && waypoints[1](0) == 0.0 ) {
+         cmd_vel.linear.x = 0 ;
+         cmd_vel.angular.z = 0.0f; // steer_angle_normalized;
+      }
+      #endif
       cmd_vel_pub.publish(cmd_vel);
 
       estimate.linear.x = mu(0);
