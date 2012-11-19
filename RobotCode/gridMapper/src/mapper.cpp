@@ -332,7 +332,7 @@ float MAG(float x1,float x2,float y1,float y2) {
 std::vector<Vector2d> * 
 OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    State *S; 
-   float tol = RobotWidth;
+   float tol = goal_tol;
    float tx,ty,tang;
    float v = 4*xRes;
    float w = PI/12.0 ;

@@ -140,8 +140,8 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
-   waypoints[0](0) = waypoints[1](0);
-   waypoints[0](1) = waypoints[1](1);
+   waypoints[0](0) = mu(0);
+   waypoints[0](1) = mu(1);
 
    waypoints[1](0) = msg->linear.x;
    waypoints[1](1) = msg->linear.y;
@@ -286,14 +286,18 @@ int main(int argc, char* argv[])
       ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
       
       steer_angle = max_steering_angle;
-      cmd_vel.angular.z = 100.0f; // steer_angle_normalized;
+      cmd_vel.angular.z = steer_angle_normalized;
 
       // publish results
       #ifdef LAB2
-      if (waypoints[1](1) == 0.0 && waypoints[1](0) == 0.0 ) {
+      if (waypoints[1](1) == 1337 && waypoints[1](0) == 1337 ) {
          cmd_vel.linear.x = 0 ;
          cmd_vel.angular.z = 0.0f; // steer_angle_normalized;
       }
+      #endif
+      #ifdef USE_SIM
+      cmd_vel.linear.x /= 100.0f;
+      cmd_vel.angular.z /= 100.0f;
       #endif
       cmd_vel_pub.publish(cmd_vel);
 

@@ -29,6 +29,7 @@ using namespace std;
 /* All The Colours */
 #ifdef USE_SFML
 sf::Color RobotColor(214,246,0);
+sf::Color GhostColor(9,101,205);
 sf::Color PathColor(255,0,192);
 
 sf::Color Border(32,32,32);
@@ -157,13 +158,20 @@ int main (int argc, char* argv[]) {
 
 
    /* ----- Setup ----- */
-   Transform Robot,Head;
+   Transform Robot,Ghost,Head,GHead;
    Head.Rect(-RL/10,-RW/4,RL/10,RW/4,Unknown);
    Head.SetCenter(RL/10,0);
    Head.SetLPosition(RL-RCX,0);
-   Robot.Rect(0,0,RL,RW,RobotColor);
+   Robot.Rect(0,0,RL,RW,RobotColor,1,Unknown);
    Robot.SetCenter(RCX,RCY);
    Robot.AddChild(&Head);
+
+   GHead.Rect(-RL/10,-RW/4,RL/10,RW/4,Unknown);
+   GHead.SetCenter(RL/10,0);
+   GHead.SetLPosition(RL-RCX,0);
+   Ghost.Rect(0,0,RL,RW,GhostColor,1,Unknown);
+   Ghost.SetCenter(RCX,RCY);
+   Ghost.AddChild(&GHead);
    #endif
    //fillMap(0.5,0.5,1,1);   
    x = y = theta = 0 ;
@@ -212,9 +220,12 @@ int main (int argc, char* argv[]) {
       #endif
       
       //*
+      WayPoint.linear.x = 1337;
+      WayPoint.linear.y = 1337;
       if (plan) {
          vector<Vector2d> * path;
-
+         
+         Window.Draw(sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, BG,2,Unknown));
 
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
@@ -253,8 +264,12 @@ int main (int argc, char* argv[]) {
       /* ~~ End Test ~~ */
 
       #ifdef USE_SFML
+      Ghost.SetGPosition(X1+PPM*(x-0.5-Map_X1),Y2-PPM*(y-0.5-Map_Y1));
+      Ghost.SetGRotation(theta*180/PI);
       Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1));
       Robot.SetGRotation(theta*180/PI);
+
+      Ghost.Draw(&Window);
       Robot.Draw(&Window);
       /* ------------------------ */
       Window.Display() ;

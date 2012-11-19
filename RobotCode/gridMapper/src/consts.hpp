@@ -13,7 +13,7 @@
    #define USE_SIMULATOR
 #endif
 
-#define PATH_PLANNER 1 // 0: wavefront, 1: A*, 2: Both
+#define PATH_PLANNER 0 // 0: wavefront, 1: A*, 2: Both
 
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
@@ -32,6 +32,7 @@
 #define Map_YRes 0.05// meters/cell
 
 #define wall_tol RobotWidth/Map_XRes
+#define goal_tol RobotWidth/2.0
 
 /* DONT CHANGE THESE THINGS */
 

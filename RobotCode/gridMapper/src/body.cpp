@@ -89,6 +89,11 @@ Transform::Rect (float x1, float y1, float x2, float y2, sf::Color c) {
 }
 
 void
+Transform::Rect (float x1, float y1, float x2, float y2, sf::Color c,float outline,sf::Color oc) {
+   surface = sf::Shape::Rectangle (x1,y1,x2,y2,c,outline,oc) ;
+}
+
+void
 Transform::SetGRotation (float A) {
       surface.SetRotation(A) ; 
    Transform* tmp = (Transform*)children.GetNode(0) ;
