@@ -69,9 +69,11 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    // simulator gives us a quaternion
    float q_x = msg->pose.pose.orientation.x, q_y = msg->pose.pose.orientation.y, q_z = msg->pose.pose.orientation.z, q_w = msg->pose.pose.orientation.w;
    theta = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
+   /*
    scanner.x = x;
    scanner.y = y;
    scanner.theta = theta;
+   */
 }
 #else
 void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
@@ -205,7 +207,7 @@ int main (int argc, char* argv[]) {
    ros::Publisher waypoint_pub = nodeHandle.advertise<geometry_msgs::Twist>("waypoint", 1);
 
    ros::Subscriber scanner_sub = nodeHandle.subscribe("base_scan/scan", 1 ,scannerCallback);
-//   ros::Subscriber ekf_sub = nodeHandle.subscribe("estimate",1,ekfCallback);
+   ros::Subscriber ekf_sub = nodeHandle.subscribe("estimate",1,ekfCallback);
    #ifdef USE_SIMULATOR
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback); 
    #else
@@ -234,9 +236,6 @@ int main (int argc, char* argv[]) {
       mu_x = 0.2+sin(mu_theta);
       mu_y = -0.2+cos(mu_theta);
       /* End Test Code */
-      mu_x = x+0.1;
-      mu_y = y;
-      mu_theta = theta;
       
       /* Planning */
       WayPoint.linear.x = 1337;
