@@ -62,6 +62,8 @@ class OccupancyGrid {
 
       void updateCell (int p,int i,int j) ;
 
+
+      std::vector<Vector2d> * WavePlanner(float sX, float sY, float gX,float gY) ;
       std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
       std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY) ;
 

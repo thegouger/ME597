@@ -184,10 +184,11 @@ int main (int argc, char* argv[]) {
    bool plan = false;; 
 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
-   /*/ Test Obsticals
+   //*/ Test Obsticals
    Grid.fillMap(0.55,0.8,0.25,1);   
    Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
    Grid.fillMap(0.55,0.8,-1,-0.25);   
+   Grid.fillMap(1.5,2,-0.5,0.5);   
    //*/
    vector<Vector2d> truePath,ekfPath;;
    Vector2d tmpP;
@@ -258,11 +259,11 @@ int main (int argc, char* argv[]) {
 
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
-         path = Grid.findPath(mu_x,mu_y,gx,gy);
+         path = Grid.WavePlanner(mu_x,mu_y,gx,gy);
          drawPath(path,Unknown,&Window);
-         if ( path->size() > 5 ) {
-            WayPoint.linear.x = path->at(5).x;
-            WayPoint.linear.y = path->at(5).y;
+         if ( path->size() > 3 ) {
+            WayPoint.linear.x = path->at(3).x;
+            WayPoint.linear.y = path->at(3).y;
          }
          delete path;
          #endif
@@ -306,7 +307,7 @@ int main (int argc, char* argv[]) {
                gx = (MouseX-X1)/PPM + Map_X1;
                gy = (Y2-MouseY)/PPM + Map_Y1;
 
-               Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, BG,2,Unknown) ;
+               Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, PathColor,2,Unknown) ;
             }
          }
          if (Event.Type == sf::Event::KeyPressed) {

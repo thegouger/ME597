@@ -71,7 +71,7 @@ OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2
 
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
-            Map[i][j] = LP0;
+            Map[i][j] = LPLow;
             //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
@@ -215,7 +215,7 @@ OccupancyGrid::~OccupancyGrid(){
 
 /* Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return 0.5 * sqrt(pow(gi-i,2)+pow(gj-j,2));
+   return pow(gi-i,2)+pow(gj-j,2);
 }
 
 float H2(float x, float y, float gx, float gy) {
@@ -238,7 +238,7 @@ bool OccupancyGrid::validPosition(int i, int j) {
 State * OccupancyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
    State * S = new State ;
    S->i = i;   S->j = j;
-   S->g = g + Map[i][j];
+   S->g = g + 1 ;
    S->f = g + H(i,j,gi,gj);
    S->parent = parent;
    return S;
@@ -248,12 +248,101 @@ State * OccupancyGrid::generateNode(float x, float y, float theta, float gx, flo
    State * S = new State ;
    S->x = x;   S->y = y;
    S->theta = theta;
-   S->g = g; //+ Map[xtoi(x)][ytoj(y)];
+   S->g = g ; //+ Map[xtoi(x)][ytoj(y)];
    S->f = g + H2(x,y,gx,gy);
    S->parent = parent;
    return S;
 }
 
+std::vector<Vector2d> * 
+OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
+   int si = xtoi(sX);
+   int sj = ytoj(sY);
+   int gi = xtoi(gX);
+   int gj = ytoj(gY);
+   
+   State *S; 
+   int closed[m][n];
+   for (int i=0 ;i<m; i++){
+      for (int j=0; j<n; j++) {
+         closed[i][j] = 0;
+      }
+   }
+
+   std::priority_queue<State*, std::vector<State*>, CompareState > pq;
+   std::list<State*> freeList;
+    
+   pq.push(generateNode(si,sj,gi,gj,0,NULL));
+
+   /* Search for the goal Sate */
+   int count = 0 ;
+   while ( !pq.empty() ) {
+      count++;
+      if (count > m*n*m*n*m*n*m*n) {
+         cout << "findPath failed (node limit reached)\n";
+         break;
+      }
+      S = pq.top();
+      pq.pop();
+      freeList.push_front(S);
+
+      if (S->i == gi && S->j == gj) break; // reached the goal state
+
+      closed[S->i][S->j] = 1 ;
+      /* Add Neighbours */
+      if (validPosition(S->i+1,S->j)) {
+         if ( closed[S->i+1][S->j] == 0 ) {
+            closed[S->i+1][S->j] = 2 ;
+            pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i-1,S->j)) {
+         if ( closed[S->i-1][S->j] == 0 ) {
+            closed[S->i-1][S->j] = 2;
+            pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i,S->j+1)) {
+         if ( closed[S->i][S->j+1] == 0 ) {
+            closed[S->i][S->j+1] = 2;
+            pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i,S->j-1)) {
+         if ( closed[S->i][S->j-1] == 0 ) {
+            closed[S->i][S->j-1] = 2;
+            pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
+         }
+      }
+   }
+
+   /* Form the Path */
+   std::vector<Vector2d> *path = new std::vector<Vector2d>;
+   if (S != NULL && S->i == gi && S->j == gj) {
+      while (S != NULL) {
+         Vector2d p; 
+         p.x = itox(S->i);
+         p.y = jtoy(S->j);
+         path->insert(path->begin(),p);
+         S = S->parent;
+      }
+   }
+
+   /* Free all the memory */
+   while ( !pq.empty() ) {
+      S = pq.top();
+      pq.pop();
+      delete S;
+   }
+   while ( !freeList.empty() ) {
+      S = freeList.front();
+      freeList.pop_front();
+      delete S;
+   }
+
+   /* Return the Path */
+   return path;
+}
 std::vector<Vector2d> * 
 OccupancyGrid::findPath(float sX,float sY,float gX,float gY) {
    int si = xtoi(sX);
@@ -334,8 +423,8 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    State *S; 
    float tol = goal_tol;
    float tx,ty,tang;
-   float v = 7*xRes;
-   float w = PI/8.0 ;
+   float v = goal_tol*1.5;
+   float w = PI/12.0 ;
 
    std::priority_queue<State*, std::vector<State*>, CompareState > pq;
    std::list<State*> freeList;
@@ -392,6 +481,7 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
          S = S->parent;
       }
    }
+   cout << count << endl;
 
    /* Free all the memory */
    while ( !pq.empty() ) {
