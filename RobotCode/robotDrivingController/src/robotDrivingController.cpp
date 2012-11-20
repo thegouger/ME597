@@ -66,17 +66,30 @@ double old_time;
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
    float x,y,Theta;
-      x = msg->pose.pose.position.x;
-         y = msg->pose.pose.position.y;
-            Theta = msg->pose.pose.orientation.z;
-               double roll, pitch;
+   x = msg->pose.pose.position.x;
+   y = msg->pose.pose.position.y;
 
-                  // simulator gives us a quaternion
-                     float q_x = msg->pose.pose.orientation.x, q_y = msg->pose.pose.orientation.y, q_z = msg->pose.pose.orientation.z, q_w = msg->pose.pose.orientation.w;
-                        Theta = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
+   // simulator gives us a quaternion
+   float q_x = msg->pose.pose.orientation.x, q_y = msg->pose.pose.orientation.y, q_z = msg->pose.pose.orientation.z, q_w = msg->pose.pose.orientation.w;
+ 
+   Theta = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
+
+   if(!position_acquired)
+   {
       mu(0) = x;
       mu(1) = y;
       mu(2) = Theta;
+   }
+
+   Y(1) = x;
+   Y(2) = y;
+   Y(3) = Theta;
+   
+   Vector3f epsilon;
+   epsilon(0) = pos_norm(); 
+   epsilon(1) = pos_norm();
+   epsilon(2) = theta_norm();
+
 }
 #endif
 
@@ -130,8 +143,6 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
     //K     = Sigma_p*(C.transpose())*((C*Sigma_p*(C.transpose()) + Q).inverse());
    K = Sigma_p*(Sigma_p + Q).inverse();
    mu    = mu_p + ((Y(0) < 900) ? K*(Y - C*mu_p) : (Vector3f() << 0,0,0).finished());
-   // mu    = mu_p + K*(Y - C*mu_p);
-   //std::cout << mu-mu_p; 
    Sigma = (Matrix3f().Identity() - K*C)*Sigma_p;
 
    outfile << dt  << " " << msg->X << " " << msg->Y << " " << msg->Yaw/180.0*3.14159 << " " << mu(0) << " " << mu(1) << " "
@@ -232,89 +243,91 @@ int main(int argc, char* argv[])
 	 continue;
       }
 
-      // PID controller
+    // PID controller
 
-      Vector2f heading_vector(cos(mu(2)), sin(mu(2)));
+    Vector2f heading_vector(cos(mu(2)), sin(mu(2)));
 
-      #ifdef ENCODERS
-      float velocity_sign = current_velocity > 0 ? 1.0 : -1.0;
-      ROS_INFO("V sign: %f", velocity_sign);
-      #endif
+    #ifdef ENCODERS
+    float velocity_sign = current_velocity > 0 ? 1.0 : -1.0;
+    ROS_INFO("V sign: %f", velocity_sign);
+    #endif
 
-      // PID terms
-      float error = desired_velocity - velocity_sign*current_velocity;
-      err_sum += error;
+    // PID terms
+    float error = desired_velocity - velocity_sign*current_velocity;
+    err_sum += error;
 
-      float vel_output = error * kp + err_sum * ki;
+    float vel_output = error * kp + err_sum * ki;
 
-      // limit velocity output
-      if(vel_output > MAX_OUTPUT_SPEED)       vel_output = MAX_OUTPUT_SPEED;
-      else if(vel_output < -100) vel_output = -100.0;
+    // limit velocity output
+    if(vel_output > MAX_OUTPUT_SPEED)       vel_output = MAX_OUTPUT_SPEED;
+    else if(vel_output < -100) vel_output = -100.0;
 
-      cmd_vel.linear.x = vel_output;
+    cmd_vel.linear.x = vel_output;
 
-      // Steering controller
+    // Steering controller
 #ifdef LAB1
-      if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.5)
-      {
-         //outfile << "Acheived waypoint: " << way_state << "\n";
-         ROS_INFO("Acheived waypoint: %d", way_state);
-         way_state = way_state % 4 + 1;
-      }
+    if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.5)
+    {
+       //outfile << "Acheived waypoint: " << way_state << "\n";
+       ROS_INFO("Acheived waypoint: %d", way_state);
+       way_state = way_state % 4 + 1;
+    }
 #endif
-      float x0,y0,x1,y1,x2,y2;
-      x0 = mu(0);
-      y0 = mu(1);
-      x1 = waypoints[way_state - 1](0);
-      y1 = waypoints[way_state - 1](1);
-      x2 = waypoints[way_state % 4](0);
-      y2 = waypoints[way_state % 4](1);
+    float x0,y0,x1,y1,x2,y2;
+    x0 = mu(0);
+    y0 = mu(1);
+    x1 = waypoints[way_state - 1](0);
+    y1 = waypoints[way_state - 1](1);
+    x2 = waypoints[way_state % 4](0);
+    y2 = waypoints[way_state % 4](1);
 
-      Vector2f path_vector(x2-x1, y2-y1);
-      float heading = acos((path_vector.dot(heading_vector))/path_vector.norm());
-      float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/path_vector.norm();
+    Vector2f path_vector(x2-x1, y2-y1);
+    float sign = heading_vector(0)*path_vector(1) - heading_vector(1)*path_vector(0);
+    sign /= fabs(sign);
+    float heading = sign*acos((path_vector.dot(heading_vector))/path_vector.norm());
+    float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/path_vector.norm();
       
-      steer_angle = heading;// + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
-      float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
+    steer_angle = heading;// + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
+    float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
       
-      if(steer_angle > max_steering_angle) steer_angle = max_steering_angle;
-      else if(steer_angle < -max_steering_angle) steer_angle = -max_steering_angle;
+    if(steer_angle > max_steering_angle) steer_angle = max_steering_angle;
+    else if(steer_angle < -max_steering_angle) steer_angle = -max_steering_angle;
 
-      if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
-      else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
+    if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
+    else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
 
-      ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
+    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
       
-      steer_angle = max_steering_angle;
-      cmd_vel.angular.z = steer_angle_normalized;
+    steer_angle = max_steering_angle;
+    cmd_vel.angular.z = steer_angle_normalized;
 
-      // publish results
-      #ifdef LAB2
-      if (waypoints[1](1) == 1337 && waypoints[1](0) == 1337 ) {
-         cmd_vel.linear.x = 0 ;
-         cmd_vel.angular.z = 0.0f; // steer_angle_normalized;
-      }
-      #endif
-      #ifdef USE_SIM
-      cmd_vel.linear.x /= 100.0f;
-      cmd_vel.angular.z /= 100.0f;
-      #endif
-      cmd_vel_pub.publish(cmd_vel);
+    // publish results
+    #ifdef LAB2
+    if (waypoints[1](1) == 1337 && waypoints[1](0) == 1337 ) {
+       cmd_vel.linear.x = 0 ;
+       cmd_vel.angular.z = 0.0f; // steer_angle_normalized;
+    }
+    #endif
+    #ifdef USE_SIM
+    cmd_vel.linear.x /= 100.0f;
+    cmd_vel.angular.z /= 100.0f;
+    #endif
+    cmd_vel_pub.publish(cmd_vel);
 
-      estimate.linear.x = mu(0);
-      estimate.linear.y = mu(1);
-      estimate.angular.z = mu(2);
-      // publish estimates
-     //  if(Y_noiseless(0) < 900)
-     //  {
-     //    estimate.linear.x = Y_noiseless(0);
-     //    estimate.linear.y = Y_noiseless(1);
-     //    estimate.angular.z = Y_noiseless(2);
-     //  }
+    estimate.linear.x = mu(0);
+    estimate.linear.y = mu(1);
+    estimate.angular.z = mu(2);
+    // publish estimates
+   //  if(Y_noiseless(0) < 900)
+   //  {
+   //    estimate.linear.x = Y_noiseless(0);
+   //    estimate.linear.y = Y_noiseless(1);
+   //    estimate.angular.z = Y_noiseless(2);
+   //  }
 
-      estimate_pub.publish(estimate);
+    estimate_pub.publish(estimate);
 
-      loop_rate.sleep();
+    loop_rate.sleep();
    }
 
    return 0;
