@@ -204,7 +204,7 @@ int main (int argc, char* argv[]) {
    ros::Publisher waypoint_pub = nodeHandle.advertise<geometry_msgs::Twist>("waypoint", 1);
 
    ros::Subscriber scanner_sub = nodeHandle.subscribe("base_scan/scan", 1 ,scannerCallback);
-   ros::Subscriber ekf_sub = nodeHandle.subscribe("estimate",1,ekfCallback);
+//   ros::Subscriber ekf_sub = nodeHandle.subscribe("estimate",1,ekfCallback);
    #ifdef USE_SIMULATOR
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback); 
    #else
@@ -225,7 +225,7 @@ int main (int argc, char* argv[]) {
       drawMap(&Grid,&Window);
       #endif
 
-      //* Test Code
+      /* Test Code
       x = sin(theta);
       y = cos(theta);
       theta += 0.1 ;
@@ -233,6 +233,9 @@ int main (int argc, char* argv[]) {
       mu_x = 0.2+sin(mu_theta);
       mu_y = -0.2+cos(mu_theta);
       /* End Test Code */
+      mu_x = x+0.1;
+      mu_y = y;
+      mu_theta = theta;
       
       /* Planning */
       WayPoint.linear.x = 1337;
@@ -257,9 +260,9 @@ int main (int argc, char* argv[]) {
          #if PATH_PLANNER<1 || PATH_PLANNER >1
          path = Grid.findPath(mu_x,mu_y,gx,gy);
          drawPath(path,Unknown,&Window);
-         if ( path->size() > 1 ) {
-            WayPoint.linear.x = path->at(1).x;
-            WayPoint.linear.y = path->at(1).y;
+         if ( path->size() > 5 ) {
+            WayPoint.linear.x = path->at(5).x;
+            WayPoint.linear.y = path->at(5).y;
          }
          delete path;
          #endif
@@ -268,9 +271,9 @@ int main (int argc, char* argv[]) {
          #if PATH_PLANNER>0
          path = Grid.findPath2(mu_x,mu_y,mu_theta,gx,gy);
          drawPath(path,PathColor,&Window);
-         if ( path->size() > 5 ) {
-            WayPoint.linear.x = path->at(1).x;
-            WayPoint.linear.y = path->at(1).y;
+         if ( path->size() > 2 ) {
+            WayPoint.linear.x = path->at(2).x;
+            WayPoint.linear.y = path->at(2).y;
          }
          delete path;
          #endif

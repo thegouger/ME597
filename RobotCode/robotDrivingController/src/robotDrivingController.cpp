@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 1.0; //  0.5f;
+   double ks = 0.50; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
@@ -274,11 +274,11 @@ int main(int argc, char* argv[])
       float heading = acos((path_vector.dot(heading_vector))/path_vector.norm());
       float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/path_vector.norm();
       
-      steer_angle = heading + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
+      steer_angle = heading;// + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
       float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
       
       if(steer_angle > max_steering_angle) steer_angle = max_steering_angle;
-      else if(steer_angle < max_steering_angle) steer_angle = -max_steering_angle;
+      else if(steer_angle < -max_steering_angle) steer_angle = -max_steering_angle;
 
       if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
       else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;

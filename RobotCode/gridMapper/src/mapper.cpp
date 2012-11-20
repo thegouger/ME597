@@ -71,7 +71,7 @@ OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2
 
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
-            Map[i][j] = LPLow;
+            Map[i][j] = LP0;
             //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
@@ -334,8 +334,8 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    State *S; 
    float tol = goal_tol;
    float tx,ty,tang;
-   float v = 4*xRes;
-   float w = PI/12.0 ;
+   float v = 7*xRes;
+   float w = PI/8.0 ;
 
    std::priority_queue<State*, std::vector<State*>, CompareState > pq;
    std::list<State*> freeList;
