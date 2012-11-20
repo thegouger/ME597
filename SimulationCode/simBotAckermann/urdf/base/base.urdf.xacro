@@ -274,8 +274,8 @@
 	<!--gazebo extensions-->
 		<xacro:simBot_base_gazebo name="${name}" />
 		
-		<!--Hokuyo 2d laser-->
-	    	<xacro:simBot_hokuyo_laser parent="${name}" name="${name}_laser" laser_topic="base_scan/scan" update_rate="20" min_angle="-2.2689" max_angle="2.2689" >
+		<!--Hokuyo 2d laser, +/- 2.2689-->
+	    	<xacro:simBot_hokuyo_laser parent="${name}" name="${name}_laser" laser_topic="base_scan/scan" update_rate="10" min_angle="-1.5708" max_angle="1.5708" >
 			<origin xyz="${base_laser_x} ${base_laser_y} ${base_laser_z}" rpy="0 0 0" />
 		</xacro:simBot_hokuyo_laser>
 		

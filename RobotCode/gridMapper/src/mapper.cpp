@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <queue>
+#include <cfloat>
 
 #include "consts.hpp"
 #include "mapper.hpp"
@@ -19,8 +20,8 @@ LaserScanner::LaserScanner(){
    AngMin = -PI/2;
    AngRes = PI/180;
 
-   Beta = 0.05;  // degrees
-   Alpha = .1;   // m <--- wait whatttT??? this should set?!?!
+   Beta = 0.01;//0.010;  // rad
+   Alpha = 0.16; // .1;   // m <--- wait whatttT??? this should set?!?!
 
    grid = NULL ;
 }
@@ -119,10 +120,17 @@ void OccupancyGrid::saveMap(std::string fileName) {
     }
 }
 
-void OccupancyGrid::updateCell (int p,int i,int j) {
-    if (Map[i][j] < 5 && Map[i][j] > -5) { // <-- update with less stupid numbers
-         Map[i][j] -= LP0;
-         Map[i][j] += p<0 ? LPLow : (p>0 ? LPHigh : LP0 ) ;
+void OccupancyGrid::updateCell (int p, int i, int j) {
+    if(p<0 && Map[i][j] > -FLT_MAX/10 )
+    {
+      Map[i][j] -= LP0;
+      Map[i][j] += LPLow;
+    }
+
+    else if(p>0 && Map[i][j] < FLT_MAX - 1)
+    {
+      Map[i][j] -= LP0;
+      Map[i][j] += LPHigh;
     }
 }
 
@@ -187,6 +195,7 @@ void LaserScanner::updateMap(void) { // get x,y,theta from ekf message
             }
             // If the cell is in front of the range measurement, likely to be empty
             else if (r <= fmin(RMax,ranges[k])) {
+            //else if(r <= ranges[k]) {
                 p = -1;
             }
             grid->updateCell(p,i,j);
