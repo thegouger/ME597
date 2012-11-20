@@ -124,13 +124,13 @@ void OccupancyGrid::saveMap(std::string fileName) {
 }
 
 void OccupancyGrid::updateCell (int p, int i, int j) {
-    if(p<0 && Map[i][j] > -FLT_MAX/10 )
+    if(p<0 && Map[i][j] > -100000 )
     {
       Map[i][j] -= LP0;
       Map[i][j] += LPLow;
     }
 
-    else if(p>0 && Map[i][j] < FLT_MAX - 1)
+    else if(p>0 && Map[i][j] < 100000 )
     {
       Map[i][j] -= LP0;
       Map[i][j] += LPHigh;

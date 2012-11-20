@@ -260,7 +260,7 @@ int main (int argc, char* argv[]) {
          #if PATH_PLANNER<1 || PATH_PLANNER >1
          path = Grid.WavePlanner(mu_x,mu_y,gx,gy);
          drawPath(path,PathColor,&Window);
-         int cp = 10;
+         int cp = 45;
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
             WayPoint.linear.y = path->at(cp).y;

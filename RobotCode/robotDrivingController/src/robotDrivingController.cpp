@@ -352,6 +352,7 @@ int main(int argc, char* argv[])
     steer_angle = max_steering_angle;
     cmd_vel.angular.z = steer_angle_normalized;
 
+    cmd_vel.linear.x  = 1.5f; // /= 100.0f;
     // publish results
     #ifdef LAB2
     if (waypoints[1](1) == 1337 && waypoints[1](0) == 1337 ) {
@@ -360,7 +361,6 @@ int main(int argc, char* argv[])
     }
     #endif
     #ifdef USE_SIM
-    cmd_vel.linear.x  = 1.5f; // /= 100.0f;
     cmd_vel.angular.z /= 100.0f;
     #endif
     cmd_vel_pub.publish(cmd_vel);
