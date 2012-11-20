@@ -41,6 +41,7 @@ class Transform {
    Transform (float X,float Y,float A) ;
 
    void Rect (float x1, float y1, float x2, float y2, sf::Color c) ;
+   void Rect (float x1, float y1, float x2, float y2, sf::Color c,float outline,sf::Color oc) ;
 
    void SetGPosition (float ,float) ;
    void SetGPosition (const sf::Vector2f & ) ;

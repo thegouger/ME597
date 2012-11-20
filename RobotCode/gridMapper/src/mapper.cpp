@@ -7,7 +7,10 @@
 
 #include "consts.hpp"
 #include "mapper.hpp"
-#include <sensor_msgs/LaserScan.h>
+
+#ifdef USE_ROS
+   #include <sensor_msgs/LaserScan.h>
+#endif
 
 using namespace std;
 
@@ -69,7 +72,7 @@ OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2
 
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
-            Map[i][j] = LPLow;
+            Map[i][j] = LP0;
             //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
@@ -279,6 +282,7 @@ OccupancyGrid::findPath(float sX,float sY,float gX,float gY) {
    while ( !pq.empty() ) {
       count++;
       if (count > m*n) {
+         cout << "findPath failed (node limit reached)\n";
          break;
       }
       S = pq.top();
@@ -337,10 +341,10 @@ float MAG(float x1,float x2,float y1,float y2) {
 std::vector<Vector2d> * 
 OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    State *S; 
-   float tol = 7*xRes;
+   float tol = goal_tol;
    float tx,ty,tang;
-   float v = 4*xRes;
-   float w = PI/12.0 ;
+   float v = 7*xRes;
+   float w = PI/8.0 ;
 
    std::priority_queue<State*, std::vector<State*>, CompareState > pq;
    std::list<State*> freeList;
@@ -351,8 +355,8 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
    int count = 0 ;
    while ( !pq.empty() ) {
       count++;
-      if (count > 160*m*n) {
-         std::cout << "failed\n" ;
+      if (count > 128*m*n) {
+         std::cout << "findPath2 failed (node limit reached)\n" ;
          break;
       }
       S = pq.top();
@@ -360,7 +364,6 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
       freeList.push_front(S);
 
       if ( MAG(S->x,gX,S->y,gY) < tol ) {
-         std::cout << "goalReached\n";
          break; // reached the goal state
       }
 
@@ -371,7 +374,7 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
       if ( validPosition(xtoi(tx),ytoj(ty)) ) {
          pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
       }
-//*
+
       tang = S->theta + w ; 
       tx = S->x + v*cos(S->theta);
       ty = S->y + v*sin(S->theta);
@@ -385,7 +388,6 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
       if ( validPosition(xtoi(tx),ytoj(ty)) ) {
          pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
       }
-  //*/       
    }
 
    /* Form the Path */

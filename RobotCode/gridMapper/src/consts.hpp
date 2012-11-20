@@ -9,6 +9,11 @@
 /* You Can Change These Things */
 #define USE_SFML
 #define USE_ROS
+#ifdef USE_ROS
+   #define USE_SIMULATOR
+#endif
+
+#define PATH_PLANNER 1 // 0: wavefront, 1: A*, 2: Both
 
 #define PPM 100 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
@@ -18,8 +23,8 @@
 #define RobotWidth 0.162  // meters
 
 // Defines the Reign of Space 
-#define Map_X1 -2 // X, meters
-#define Map_X2 2 // X, meters
+#define Map_X1 -1 // X, meters
+#define Map_X2 6 // X, meters
 #define Map_Y1 -2  // Y, meters
 #define Map_Y2 2 // Y, meters
         
@@ -27,6 +32,7 @@
 #define Map_YRes 0.05// meters/cell
 
 #define wall_tol RobotWidth/Map_XRes
+#define goal_tol RobotWidth/2.0
 
 /* DONT CHANGE THESE THINGS */
 
