@@ -37,8 +37,8 @@ sf::Color BG(106,106,67);
 sf::Color Empty(86,105,106);
 sf::Color Full(126,30,32);
 sf::Color Unknown(32,32,32);
-#endif
 /* ^^ Colours ^^ */
+#endif
 
 LaserScanner scanner;
 
@@ -47,10 +47,12 @@ bool update_map;
 
 /* node infos */
 float x,y,theta;
+float mu_x,mu_y,mu_theta;
 
 /* Goal Position */
 float gx; // m
 float gy; // m
+
 
 #ifdef USE_ROS
 void scannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg) { 
@@ -72,15 +74,6 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    scanner.theta = theta;
 }
 #else
-void stateCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
-   x = msg->linear.x;
-   y = msg->linear.y;
-   theta = msg->angular.z;
-   scanner.x = x;
-   scanner.y = y;
-   scanner.theta = theta;
-}
-#endif
 void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
    y = msg->Y;
@@ -88,6 +81,15 @@ void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    scanner.x = x;
    scanner.y = y;
    scanner.theta = theta;
+}
+#endif
+void ekfCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
+   mu_x = msg->linear.x;
+   mu_y = msg->linear.y;
+   mu_theta = msg->angular.z;
+   scanner.x = mu_x;
+   scanner.y = mu_y;
+   scanner.theta = mu_theta;
 }
 #endif
 
@@ -158,6 +160,8 @@ int main (int argc, char* argv[]) {
 
 
    /* ----- Setup ----- */
+   sf::Shape Goal,Start;
+
    Transform Robot,Ghost,Head,GHead;
    Head.Rect(-RL/10,-RW/4,RL/10,RW/4,Unknown);
    Head.SetCenter(RL/10,0);
@@ -173,11 +177,20 @@ int main (int argc, char* argv[]) {
    Ghost.SetCenter(RCX,RCY);
    Ghost.AddChild(&GHead);
    #endif
-   //fillMap(0.5,0.5,1,1);   
+
    x = y = theta = 0 ;
+   mu_x = mu_y = mu_theta = 0 ;
    gx = gy = 0;
    bool plan = false;; 
+
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
+   /*/ Test Obsticals
+   Grid.fillMap(0.55,0.8,0.25,1);   
+   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
+   Grid.fillMap(0.55,0.8,-1,-0.25);   
+   //*/
+   vector<Vector2d> truePath,ekfPath;;
+   Vector2d tmpP;
 
    #ifdef USE_ROS
    ros::init(argc, argv, "gridMapper");
@@ -191,20 +204,13 @@ int main (int argc, char* argv[]) {
    ros::Publisher waypoint_pub = nodeHandle.advertise<geometry_msgs::Twist>("waypoint", 1);
 
    ros::Subscriber scanner_sub = nodeHandle.subscribe("base_scan/scan", 1 ,scannerCallback);
-   //ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
+   ros::Subscriber ekf_sub = nodeHandle.subscribe("estimate",1,ekfCallback);
    #ifdef USE_SIMULATOR
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback); 
    #else
-   ros::Subscriber state_sub = nodeHandle.subscribe("estimate",1,stateCallback);
+   ros::Subscriber ips_sub    = nodeHandle.subscribe("indoor_pos", 1, IPSCallback);
    #endif
-
    #endif
-   
-   /*/ Test Obsticals
-   Grid.fillMap(0.55,0.8,0.25,1);   
-   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
-   Grid.fillMap(0.55,0.8,-1,-0.25);   
-   //*/
 
    /* ------------------------ */
 #ifdef USE_ROS
@@ -218,18 +224,38 @@ int main (int argc, char* argv[]) {
       Window.Clear(BG) ;
       drawMap(&Grid,&Window);
       #endif
+
+      //* Test Code
+      x = sin(theta);
+      y = cos(theta);
+      theta += 0.1 ;
+      mu_theta = theta - 0.3;
+      mu_x = 0.2+sin(mu_theta);
+      mu_y = -0.2+cos(mu_theta);
+      /* End Test Code */
       
-      //*
+      /* Planning */
       WayPoint.linear.x = 1337;
       WayPoint.linear.y = 1337;
       if (plan) {
          vector<Vector2d> * path;
          
-         Window.Draw(sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, BG,2,Unknown));
+         Window.Draw(Start);
+         Window.Draw(Goal);
+
+         tmpP.x = mu_x;
+         tmpP.y = mu_y ;
+         ekfPath.insert(ekfPath.end(),tmpP);
+         tmpP.x = x;
+         tmpP.y = y ;
+         truePath.insert(truePath.end(),tmpP);
+         
+         drawPath(&ekfPath,GhostColor,&Window);
+         drawPath(&truePath,RobotColor,&Window);
 
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
-         path = Grid.findPath(x,y,gx,gy);
+         path = Grid.findPath(mu_x,mu_y,gx,gy);
          drawPath(path,Unknown,&Window);
          if ( path->size() > 1 ) {
             WayPoint.linear.x = path->at(1).x;
@@ -240,7 +266,7 @@ int main (int argc, char* argv[]) {
          
          /* A* */
          #if PATH_PLANNER>0
-         path = Grid.findPath2(x,y,theta,gx,gy);
+         path = Grid.findPath2(mu_x,mu_y,mu_theta,gx,gy);
          drawPath(path,PathColor,&Window);
          if ( path->size() > 5 ) {
             WayPoint.linear.x = path->at(1).x;
@@ -249,23 +275,14 @@ int main (int argc, char* argv[]) {
          delete path;
          #endif
       }
-      //*/
       #ifdef USE_ROS
       waypoint_pub.publish(WayPoint);
       #endif
-
-      /* ~~ Test Code ~~ 
-       float v = .1;
-       x += v*cos(theta);
-       y += v*sin(theta);
-       x = -1.8;
-       theta += 10*PI/180.0;
-       theta = 0 ;
-      /* ~~ End Test ~~ */
+      /* End Planning */
 
       #ifdef USE_SFML
-      Ghost.SetGPosition(X1+PPM*(x-0.5-Map_X1),Y2-PPM*(y-0.5-Map_Y1));
-      Ghost.SetGRotation(theta*180/PI);
+      Ghost.SetGPosition(X1+PPM*(mu_x-Map_X1),Y2-PPM*(mu_y-Map_Y1));
+      Ghost.SetGRotation(mu_theta*180/PI);
       Robot.SetGPosition(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1));
       Robot.SetGRotation(theta*180/PI);
 
@@ -285,11 +302,16 @@ int main (int argc, char* argv[]) {
                float MouseY = Input.GetMouseY();
                gx = (MouseX-X1)/PPM + Map_X1;
                gy = (Y2-MouseY)/PPM + Map_Y1;
+
+               Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, BG,2,Unknown) ;
             }
          }
          if (Event.Type == sf::Event::KeyPressed) {
             if(Event.Key.Code == sf::Key::A) {
                plan = !plan;
+               Start = sf::Shape::Circle(X1+PPM*(x-Map_X1),Y2-PPM*(y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
+               ekfPath.clear();
+               truePath.clear();
             }
             if(Event.Key.Code == sf::Key::P) {
                update_map = !update_map;
