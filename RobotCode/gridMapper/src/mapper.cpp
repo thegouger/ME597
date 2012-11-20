@@ -224,7 +224,7 @@ OccupancyGrid::~OccupancyGrid(){
 
 /* Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return sqrt(pow(gi-i,2)+pow(gj-j,2));
+   return (pow(gi-i,2)+pow(gj-j,2));
 }
 
 float H2(float x, float y, float gx, float gy) {

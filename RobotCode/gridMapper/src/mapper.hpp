@@ -67,6 +67,7 @@ class OccupancyGrid {
       std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
       std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY) ;
 
+      bool validPosition(int i, int j) ;
       ~OccupancyGrid();
    private:
       int m,n;
@@ -84,7 +85,6 @@ class OccupancyGrid {
 
       State * generateNode(int i, int j,int gi, int gj, float g, State * parent) ;
       State * generateNode(float x, float y, float theta, float gx, float  gy, float g, State * parent) ;
-      bool validPosition(int i, int j) ;
 };
 
 class LaserScanner {

@@ -53,6 +53,9 @@ float mu_x,mu_y,mu_theta;
 float gx; // m
 float gy; // m
 
+float mag(float x1, float y1, float x2, float y2) {
+   return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
+}
 
 #ifdef USE_ROS
 void scannerCallback(const sensor_msgs::LaserScan::ConstPtr& msg) { 
@@ -256,9 +259,36 @@ int main (int argc, char* argv[]) {
          drawPath(&ekfPath,GhostColor,&Window);
          drawPath(&truePath,RobotColor,&Window);
 
+         float sx = mu_x;
+         float sy = mu_y;
+         if (Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
+            float si = Grid.xtoi(sx);
+            float sj = Grid.ytoj(sy);
+            int ti = si;
+            int tj = sj;
+            int f = 1;
+            while (!Grid.validPosition(ti,tj)) {
+               for (int a=si-f; a<si+f; a++) {
+                  for (int b=sj-f; b<sj+f; b++) {
+                     if (Grid.validPosition(a,b)) {
+                        sx = Grid.itox(a);  
+                        sy = Grid.itox(b);  
+                        f = 0 ;
+                        break;
+                     }
+                     
+                  }
+                  if (f==0) break;
+               }
+               if (f==0) break;
+               f++;
+            }
+         }
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
-         path = Grid.WavePlanner(mu_x,mu_y,gx,gy);
+
+
+         path = Grid.WavePlanner(sx,sy,gx,gy);
          drawPath(path,PathColor,&Window);
          int cp = 45;
          if ( path->size() > cp ) {
@@ -274,7 +304,7 @@ int main (int argc, char* argv[]) {
          
          /* A* */
          #if PATH_PLANNER>0
-         path = Grid.findPath2(mu_x,mu_y,mu_theta,gx,gy);
+         path = Grid.findPath2(sx,sy,mu_theta,gx,gy);
          drawPath(path,PathColor,&Window);
          if ( path->size() > 2 ) {
             WayPoint.linear.x = path->at(2).x;
@@ -282,6 +312,10 @@ int main (int argc, char* argv[]) {
          }
          delete path;
          #endif
+         if ( mag(sx,sy,gx,gy) < goal_tol) {
+            WayPoint.linear.x = 1337;
+            WayPoint.linear.y = 1337;
+         }
       }
       #ifdef USE_ROS
       waypoint_pub.publish(WayPoint);
