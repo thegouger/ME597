@@ -14,6 +14,7 @@
 
 #define ENCODERS 1
 #define USE_SIM
+#define LAB2
 
 #ifdef USE_SIM
 #include <nav_msgs/Odometry.h>
@@ -22,9 +23,9 @@
 using namespace Eigen;
 
 std::ofstream outfile;
-const float MAX_OUTPUT_SPEED = 100.0f;
+const float MAX_OUTPUT_SPEED = 2.0f; //1.0 for actual robot
 
-const float L = 0.237;
+const float L = 0.283; //0.237; for actual robot
 
 // desired waypoints
 Vector2f waypoints[4]; // 4
@@ -65,6 +66,10 @@ double old_time;
 #ifdef USE_SIM
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
+
+   double dt = ros::Time::now().toSec() - old_time;
+   old_time = ros::Time::now().toSec();
+
    float x,y,Theta;
    x = msg->pose.pose.position.x;
    y = msg->pose.pose.position.y;
@@ -85,10 +90,42 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    Y(2) = y;
    Y(3) = Theta;
    
+   if(!position_acquired)
+   {
+      position_acquired = true;
+      return; // don't proceed with EKF because we don't have a dt yet
+   }
+
+
    Vector3f epsilon;
    epsilon(0) = pos_norm(); 
    epsilon(1) = pos_norm();
    epsilon(2) = theta_norm();
+   
+   Y += epsilon;
+
+   // Prediction update
+   mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
+   mu_p(1) = mu(1) + current_velocity*sin(mu(2))*dt;
+   mu_p(2) = mu(2) + (current_velocity*tan(steer_angle)*dt)/L;
+   if(mu_p(2) > 3.14159)       mu_p(2) -= 2*3.14159;
+   else if(mu_p(2) < -3.14159) mu_p(2) += 2*3.14159; 
+
+   G = (Matrix3f() << 1, 0, -current_velocity*sin(mu(2))*dt,
+                     0, 1, current_velocity*cos(mu(2))*dt,
+                     0, 0, 1).finished();
+
+   Sigma_p = G*Sigma*(G.transpose()) + R;
+
+   // measurement update
+   //K     = Sigma_p*(C.transpose())*((C*Sigma_p*(C.transpose()) + Q).inverse());
+   K = Sigma_p*(Sigma_p + Q).inverse();
+   mu    = mu_p + ((Y(0) < 900) ? K*(Y - C*mu_p) : (Vector3f() << 0,0,0).finished());
+   Sigma = (Matrix3f().Identity() - K*C)*Sigma_p;
+
+   outfile << dt  << " " << x << " " << y << " " << Theta << " " << mu(0) << " " << mu(1) << " "
+           << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << "\n"; 
+
 
 }
 #endif
@@ -181,8 +218,7 @@ int main(int argc, char* argv[])
    // desired travel velocity
    double desired_velocity = 0.200; // vel in m/s f
 
-   //#define LAB1
-   #define LAB2
+   #ifdef LAB1
    waypoints[0](0) = -1.01f; waypoints[0](1) = -.57f;
    waypoints[1](0) = 1.46f;  waypoints[1](1) = -.57f;
    waypoints[2](0) = 1.46f;  waypoints[2](1) = 1.45f;
@@ -194,6 +230,7 @@ int main(int argc, char* argv[])
    for (int i=0; i<4; i++) {
       outfile << waypoints[i](0) << "," << waypoints[i](1) << "\n";
    }
+   #endif
 
    // PI tuning consts
    float kp = 100.0f, ki = 10.0f;
@@ -239,8 +276,8 @@ int main(int argc, char* argv[])
       // haven't gotten a callback yet
       if(!position_acquired) // current_pos.x == 0.0)
       {
-	 loop_rate.sleep();
-	 continue;
+	     loop_rate.sleep();
+	     continue;
       }
 
     // PID controller
@@ -276,10 +313,10 @@ int main(int argc, char* argv[])
     float x0,y0,x1,y1,x2,y2;
     x0 = mu(0);
     y0 = mu(1);
-    x1 = waypoints[way_state - 1](0);
-    y1 = waypoints[way_state - 1](1);
-    x2 = waypoints[way_state % 4](0);
-    y2 = waypoints[way_state % 4](1);
+    x1 = waypoints[0](0);//waypoints[way_state - 1](0);
+    y1 = waypoints[0](1);//waypoints[way_state - 1](1);
+    x2 = waypoints[1](0);//waypoints[way_state % 4](0);
+    y2 = waypoints[1](1);//waypoints[way_state % 4](1);
 
     Vector2f path_vector(x2-x1, y2-y1);
     float sign = heading_vector(0)*path_vector(1) - heading_vector(1)*path_vector(0);
@@ -288,10 +325,11 @@ int main(int argc, char* argv[])
     float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/path_vector.norm();
       
     steer_angle = heading;// + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
-    float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
       
     if(steer_angle > max_steering_angle) steer_angle = max_steering_angle;
     else if(steer_angle < -max_steering_angle) steer_angle = -max_steering_angle;
+
+    float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
 
     if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
     else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
@@ -309,7 +347,7 @@ int main(int argc, char* argv[])
     }
     #endif
     #ifdef USE_SIM
-    cmd_vel.linear.x /= 100.0f;
+    cmd_vel.linear.x  = 1.5f; // /= 100.0f;
     cmd_vel.angular.z /= 100.0f;
     #endif
     cmd_vel_pub.publish(cmd_vel);
@@ -317,6 +355,7 @@ int main(int argc, char* argv[])
     estimate.linear.x = mu(0);
     estimate.linear.y = mu(1);
     estimate.angular.z = mu(2);
+
     // publish estimates
    //  if(Y_noiseless(0) < 900)
    //  {
