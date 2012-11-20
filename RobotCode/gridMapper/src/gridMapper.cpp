@@ -189,7 +189,7 @@ int main (int argc, char* argv[]) {
    bool plan = false; 
 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
-   //*/ Test Obsticals
+   /*/ Test Obstacles
    Grid.fillMap(0.55,0.8,0.25,1);   
    Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
    Grid.fillMap(0.55,0.8,-1,-0.25);   
@@ -261,7 +261,7 @@ int main (int argc, char* argv[]) {
 
          float sx = mu_x;
          float sy = mu_y;
-         if (Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
+         if (!Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
             float si = Grid.xtoi(sx);
             float sj = Grid.ytoj(sy);
             int ti = si;
@@ -272,7 +272,7 @@ int main (int argc, char* argv[]) {
                   for (int b=sj-f; b<sj+f; b++) {
                      if (Grid.validPosition(a,b)) {
                         sx = Grid.itox(a);  
-                        sy = Grid.itox(b);  
+                        sy = Grid.jtoy(b);  
                         f = 0 ;
                         break;
                      }
@@ -290,7 +290,7 @@ int main (int argc, char* argv[]) {
 
          path = Grid.WavePlanner(sx,sy,gx,gy);
          drawPath(path,PathColor,&Window);
-         int cp = 45;
+         int cp = 20;
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
             WayPoint.linear.y = path->at(cp).y;

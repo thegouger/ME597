@@ -6,14 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/parth/Code/ME597/RobotCode/gridMapper/src/body.cpp
-SFML/Graphics.hpp
--
-consts.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/consts.hpp
-body.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/body.hpp
-
 /home/parth/Code/ME597/RobotCode/gridMapper/src/body.hpp
 SFML/Graphics.hpp
 -
@@ -51,26 +43,6 @@ nav_msgs/Odometry.h
 -
 mapper.hpp
 /home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.hpp
-
-/home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.cpp
-fstream
--
-string
--
-vector
--
-list
--
-queue
--
-cfloat
--
-consts.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/consts.hpp
-mapper.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.hpp
-sensor_msgs/LaserScan.h
--
 
 /home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.hpp
 iostream
