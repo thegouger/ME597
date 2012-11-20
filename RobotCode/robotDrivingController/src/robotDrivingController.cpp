@@ -66,7 +66,7 @@ double old_time;
 #ifdef USE_SIM
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-
+   float old_x, old_y;
    double dt = ros::Time::now().toSec() - old_time;
    old_time = ros::Time::now().toSec();
 
@@ -86,9 +86,14 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
       mu(2) = Theta;
    }
 
-   Y(1) = x;
-   Y(2) = y;
-   Y(3) = Theta;
+   current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y));
+
+   Y(0) = x;
+   Y(1) = y;
+   Y(2) = Theta;
+
+   old_x = x;
+   old_y = y;
    
    if(!position_acquired)
    {
@@ -102,7 +107,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    epsilon(1) = pos_norm();
    epsilon(2) = theta_norm();
    
-   Y += epsilon;
+   //Y += epsilon;
 
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
@@ -125,6 +130,10 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 
    outfile << dt  << " " << x << " " << y << " " << Theta << " " << mu(0) << " " << mu(1) << " "
            << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << "\n"; 
+
+  mu(0) = Y(0);
+  mu(1) = Y(1);
+  mu(2) = Y(2);
 
 
 }
@@ -188,8 +197,12 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
-   waypoints[0](0) = mu(0);
-   waypoints[0](1) = mu(1);
+
+   if(waypoints[0](0) != waypoints[1](0) && waypoints[0](1) != waypoints[1](1))
+   {
+      waypoints[0](0) = waypoints[1](0);//mu(0);
+      waypoints[0](1) = waypoints[1](1);//mu(1);
+   }
 
    waypoints[1](0) = msg->linear.x;
    waypoints[1](1) = msg->linear.y;
@@ -236,12 +249,12 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 0.50; //  0.5f;
+   double ks = 1.50; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
 
-   double max_steering_angle = 0.349*0.80; // 20 deg ?
+   double max_steering_angle = 1.04 * .8; // < 20 deg ? (average of two links)
 
    // msgs to send/receive
    geometry_msgs::Twist cmd_vel;
@@ -324,7 +337,7 @@ int main(int argc, char* argv[])
     float heading = sign*acos((path_vector.dot(heading_vector))/path_vector.norm());
     float cross_track_err = ((x2-x1)*(y1-y0) - (x1-x0)*(y2-y1))/path_vector.norm();
       
-    steer_angle = heading;// + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
+    steer_angle = heading + atan(ks*cross_track_err/current_velocity); // this is a global so it can be accessed by the EKF
       
     if(steer_angle > max_steering_angle) steer_angle = max_steering_angle;
     else if(steer_angle < -max_steering_angle) steer_angle = -max_steering_angle;
@@ -334,7 +347,7 @@ int main(int argc, char* argv[])
     if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
     else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
 
-    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle, vel_output);
+    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle_normalized/100.0f, vel_output);
       
     steer_angle = max_steering_angle;
     cmd_vel.angular.z = steer_angle_normalized;

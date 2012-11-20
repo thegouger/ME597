@@ -237,7 +237,7 @@ bool OccupancyGrid::validPosition(int i, int j) {
 
    for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
       for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
-         if (Map[a][b] > LP0) return false;
+         if (Map[a][b] > LP0+5.0) return false;
       }
    }
 

@@ -31,8 +31,8 @@
 #define Map_XRes 0.05 // meters/cell
 #define Map_YRes 0.05// meters/cell
 
-#define wall_tol RobotWidth/Map_XRes
-#define goal_tol RobotWidth/2.0
+#define wall_tol 1.0*RobotWidth/Map_XRes
+#define goal_tol RobotWidth/1.5
 
 /* DONT CHANGE THESE THINGS */
 

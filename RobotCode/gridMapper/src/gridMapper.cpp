@@ -183,7 +183,7 @@ int main (int argc, char* argv[]) {
    x = y = theta = 0 ;
    mu_x = mu_y = mu_theta = 0 ;
    gx = gy = 0;
-   bool plan = false;; 
+   bool plan = false; 
 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
    //*/ Test Obsticals
