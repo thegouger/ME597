@@ -303,13 +303,8 @@ int main (int argc, char* argv[]) {
 
 
          path = Grid.WavePlanner(sx,sy,gx,gy);
-<<<<<<< HEAD
-         drawPath(path,Unknown,&Window);
-         int cp = 15;
-=======
          drawPath(path,PathColor,&Window);
          int cp = 10;
->>>>>>> a131a1809a26736183df4036a3ac5af8f6e7f1a7
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
             WayPoint.linear.y = path->at(cp).y;
@@ -343,14 +338,9 @@ int main (int argc, char* argv[]) {
          //Start = sf::Shape::Circle(X1+PPM*(sx-Map_X1),Y2-PPM*(sy-Map_Y1), goal_tol*PPM, BG,2,Unknown);
          //Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, PathColor,2,Unknown) ;
       }
-<<<<<<< HEAD
       //Start = sf::Shape::Circle(X1+PPM*(WayPoint.linear.x-Map_X1),Y2-PPM*(WayPoint.linear.y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
       //cout  << " gt: " << goal_tol << ",dt: " << time_step << ", tres: " << turn_res << ", tcount: " << turn_count << ", gt: " << goal_tol << " |  ";
 
-
-=======
-      Start = sf::Shape::Circle(X1+PPM*(WayPoint.linear.x-Map_X1),Y2-PPM*(WayPoint.linear.y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
->>>>>>> a131a1809a26736183df4036a3ac5af8f6e7f1a7
       #ifdef USE_ROS
       waypoint_pub.publish(WayPoint);
       #endif
