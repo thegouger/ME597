@@ -6,14 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/mitch/me597/ME597/RobotCode/gridMapper/src/body.cpp
-SFML/Graphics.hpp
--
-consts.hpp
-/home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
-body.hpp
-/home/mitch/me597/ME597/RobotCode/gridMapper/src/body.hpp
-
 /home/mitch/me597/ME597/RobotCode/gridMapper/src/body.hpp
 SFML/Graphics.hpp
 -
