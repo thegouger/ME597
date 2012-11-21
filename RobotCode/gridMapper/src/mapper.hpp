@@ -65,9 +65,10 @@ class OccupancyGrid {
 
       std::vector<Vector2d> * WavePlanner(float sX, float sY, float gX,float gY) ;
       std::vector<Vector2d> * findPath(float sX, float sY, float gX,float gY) ;
-      std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY) ;
+      std::vector<Vector2d> * findPath2(float sX, float sY, float Theta, float gX,float gY, float time_step, float turn_res, float turn_count,float goal_tol) ;
 
       bool validPosition(int i, int j) ;
+      float proxCost(int i, int j) ;
       ~OccupancyGrid();
    private:
       int m,n;

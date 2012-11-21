@@ -235,11 +235,13 @@ bool OccupancyGrid::validPosition(int i, int j) {
    if ( i < 0 || i >= m) return false;
    if ( j < 0 || j >= n) return false;
 
+/*
    for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
       for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
          if (Map[a][b] > LP0) return false;
       }
    }
+   */
 
    return true ;
 }
@@ -297,7 +299,7 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
 
       if (S->i == gi && S->j == gj) break; // reached the goal state
 
-         closed[S->i][S->j] = 1 ;
+      closed[S->i][S->j] = 1 ;
       if (  closed[S->i][S->j] ==0 ) {
       } else {
          //continue;
@@ -458,56 +460,109 @@ float MAG(float x1,float x2,float y1,float y2) {
    return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
 }
 
+void MotionStep (float x, float y, float t, float &x2, float &y2, float &t2, float dt, float w) {
+   x2 = x + cos(t)*dt;
+   y2 = y + sin(t)*dt;
+   t2 = t + w*dt;
+}
+
+float OccupancyGrid::proxCost(int i, int j) {
+   if ( i < 0 || i >= m) return false;
+   if ( j < 0 || j >= n) return false;
+
+   float tmpC,minC = 10000;
+   for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
+      for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
+         if (Map[a][b] > LP0) {
+            tmpC = sqrt( pow(a-i,2) + pow(b-j,2) ) ;
+            if (tmpC < minC){
+               minC = tmpC;
+            }
+         }
+      }
+   }
+   if ( minC == 10000) {
+      return 0 ;
+   }
+   return 10000/((sqrt(2.2)*wall_tol-minC));
+}
+
+
 std::vector<Vector2d> * 
-OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
+OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY, float time_step, float turn_res, float turn_count,float goal_tol) {
    State *S; 
    float tol = goal_tol;
    float tx,ty,tang;
-   float v = goal_tol*1.5;
-   float w = PI/12.0 ;
+   float dt = time_step;
+   float w = turn_res;
+   float angRes = turn_count;
 
    std::priority_queue<State*, std::vector<State*>, CompareState > pq;
    std::list<State*> freeList;
+   std::list<float> thetaList[m][n];
+
+   int closed[m][n];
+   for (int i=0 ;i<m; i++){
+      for (int j=0; j<n; j++) {
+         closed[i][j] = 0;
+      }
+   }
     
    pq.push(generateNode(sX,sY,Theta,gX,gY,0,NULL));
 
    /* Search for the goal Sate */
    int count = 0 ;
    while ( !pq.empty() ) {
-      count++;
-      if (count > 128*m*n) {
+      if (count > 30*m*n) {
          std::cout << "findPath2 failed (node limit reached)\n" ;
          break;
       }
       S = pq.top();
       pq.pop();
+
       freeList.push_front(S);
 
       if ( MAG(S->x,gX,S->y,gY) < tol ) {
          break; // reached the goal state
       }
 
-      /* Add Neighbours */
-      tang = S->theta; 
-      tx = S->x + v*cos(S->theta);
-      ty = S->y + v*sin(S->theta);
-      if ( validPosition(xtoi(tx),ytoj(ty)) ) {
-         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+      if ( closed[xtoi(S->x)][ytoj(S->y)] ) {
+         list<float>::iterator it;
+         bool alreadyVisited = false ;
+         for ( it=thetaList[xtoi(S->x)][ytoj(S->y)].begin() ; it != thetaList[xtoi(S->x)][ytoj(S->y)].end(); it++ ) {
+            if ( (*it) == S->theta ) {
+               alreadyVisited = true;
+               break;
+            }
+         }
+         if ( alreadyVisited ) {
+            continue;
+         }
       }
+      closed[xtoi(S->x)][ytoj(S->y)] = 1 ;
+      thetaList[xtoi(S->x)][ytoj(S->y)].push_front(S->theta);
 
-      tang = S->theta + w ; 
-      tx = S->x + v*cos(S->theta);
-      ty = S->y + v*sin(S->theta);
+      /* Add Neighbours */
+      MotionStep(S->x,S->y,S->theta,tx,ty,tang,dt,0);
       if ( validPosition(xtoi(tx),ytoj(ty)) ) {
-         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+         if ( 1 || !closed[xtoi(tx)][ytoj(ty)] ) { 
+            closed[xtoi(tx)][ytoj(ty)] = 1 ; 
+            pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y)+proxCost(xtoi(tx),ytoj(ty)),S));
+         }
       }
-         
-      tang = S->theta - w; 
-      tx = S->x + v*cos(S->theta);
-      ty = S->y + v*sin(S->theta);
-      if ( validPosition(xtoi(tx),ytoj(ty)) ) {
-         pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y),S));
+      for (int i=1; i <=angRes; i++) {
+         for (int j=0; j<3; j+=2) {
+            MotionStep(S->x,S->y,S->theta,tx,ty,tang,dt,w*i*(-1+j));
+            if ( validPosition(xtoi(tx),ytoj(ty)) ) {
+               if ( 1 || !closed[xtoi(tx)][ytoj(ty)] ) {
+                  //closed[xtoi(tx)][ytoj(ty)] = 1 ; 
+                  pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y)+proxCost(xtoi(tx),ytoj(ty)),S));
+               }
+            }
+         }
       }
+      /* End Add Neighbours */
+      count++;
    }
 
    /* Form the Path */
@@ -521,7 +576,7 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY) {
          S = S->parent;
       }
    }
-   cout << count << endl;
+   cout << "Nodes: "<<count << ", Length: " << path->size() << endl;
 
    /* Free all the memory */
    while ( !pq.empty() ) {

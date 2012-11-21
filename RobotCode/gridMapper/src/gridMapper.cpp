@@ -32,7 +32,7 @@ sf::Color RobotColor(214,246,0);
 sf::Color GhostColor(9,101,205);
 sf::Color PathColor(255,0,192);
 
-sf::Color Border(32,32,32);
+sf::Color Border(85,55,34);
 sf::Color BG(106,106,67);
 sf::Color Empty(86,105,106);
 sf::Color Full(126,30,32);
@@ -44,6 +44,10 @@ LaserScanner scanner;
 
 /* control flags */
 bool update_map;
+
+/* planner params */ 
+float time_step,turn_res,turn_count,goal_tol;
+unsigned int pcp;
 
 /* node infos */
 float x,y,theta;
@@ -129,7 +133,7 @@ void  colorTransform (float p,sf::Color & C) {
 void drawMap(OccupancyGrid *grid,sf::RenderWindow * W) {
    sf::Shape Cell;
    sf::Color C; 
-   W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT,X2+WT,Y2+WT,Border));
+   W->Draw(sf::Shape::Rectangle(X1-WT,Y1-WT+(PPM*Map_YRes),X2+WT-(PPM*Map_XRes),Y2+WT,Border));
    for (int i=0; i<grid->M(); i++) {
       for (int j=0; j<grid->N(); j++) {
          colorTransform(grid->cellProbability(i,j),C);
@@ -185,15 +189,23 @@ int main (int argc, char* argv[]) {
 
    x = y = theta = 0 ;
    mu_x = mu_y = mu_theta = 0 ;
+
+   time_step = 0.2;
+   turn_res = PI/6+0.2;
+   turn_count = 1;
+   goal_tol = 0.13;
+   pcp = 4;
+
    gx = gy = 0;
    bool plan = false; 
 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
    /*/ Test Obstacles
-   Grid.fillMap(0.55,0.8,0.25,1);   
-   Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
-   Grid.fillMap(0.55,0.8,-1,-0.25);   
-   Grid.fillMap(1.5,2,-0.5,0.5);   
+   //Grid.fillMap(0.55,0.8,0.25,1);   
+   //Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
+   //Grid.fillMap(0.55,0.8,-1,-0.25);   
+   Grid.fillMap(2.5,3,-0.5,0.5);   
+   Grid.fillMap(5.5,6,0.5,1.5);   
    //*/
    vector<Vector2d> truePath,ekfPath;;
    Vector2d tmpP;
@@ -259,8 +271,8 @@ int main (int argc, char* argv[]) {
          drawPath(&ekfPath,GhostColor,&Window);
          drawPath(&truePath,RobotColor,&Window);
 
-         float sx = mu_x;
-         float sy = mu_y;
+         float sx = x;
+         float sy = y;
          if (!Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
             float si = Grid.xtoi(sx);
             float sj = Grid.ytoj(sy);
@@ -283,13 +295,15 @@ int main (int argc, char* argv[]) {
                if (f==0) break;
                f++;
             }
+            sx += 2*(sx-x);
+            sy += 2*(sy-y);
          }
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
 
 
          path = Grid.WavePlanner(sx,sy,gx,gy);
-         drawPath(path,PathColor,&Window);
+         drawPath(path,Unknown,&Window);
          int cp = 15;
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
@@ -304,11 +318,16 @@ int main (int argc, char* argv[]) {
          
          /* A* */
          #if PATH_PLANNER>0
-         path = Grid.findPath2(sx,sy,mu_theta,gx,gy);
+         
+         path = Grid.findPath2(sx,sy,theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
          drawPath(path,PathColor,&Window);
-         if ( path->size() > 2 ) {
-            WayPoint.linear.x = path->at(2).x;
-            WayPoint.linear.y = path->at(2).y;
+         if ( path->size() > pcp ) {
+            WayPoint.linear.x = path->at(pcp).x;
+            WayPoint.linear.y = path->at(pcp).y;
+         }
+         else if ( path->size() > 0 ) {
+            WayPoint.linear.x = path->at(path->size()-1).x;
+            WayPoint.linear.y = path->at(path->size()-1).y;
          }
          delete path;
          #endif
@@ -316,8 +335,13 @@ int main (int argc, char* argv[]) {
             WayPoint.linear.x = 1337;
             WayPoint.linear.y = 1337;
          }
+         //Start = sf::Shape::Circle(X1+PPM*(sx-Map_X1),Y2-PPM*(sy-Map_Y1), goal_tol*PPM, BG,2,Unknown);
+         //Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, PathColor,2,Unknown) ;
       }
       //Start = sf::Shape::Circle(X1+PPM*(WayPoint.linear.x-Map_X1),Y2-PPM*(WayPoint.linear.y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
+      //cout  << " gt: " << goal_tol << ",dt: " << time_step << ", tres: " << turn_res << ", tcount: " << turn_count << ", gt: " << goal_tol << " |  ";
+
+
       #ifdef USE_ROS
       waypoint_pub.publish(WayPoint);
       #endif
@@ -364,6 +388,39 @@ int main (int argc, char* argv[]) {
             }
             if(Event.Key.Code == sf::Key::L) {
                Grid.loadMap("Map");
+            }
+            float goalstep = 0.1;
+            if(Event.Key.Code == sf::Key::R) {
+               goal_tol += goalstep;
+            }
+            if(Event.Key.Code == sf::Key::F) {
+               goal_tol -= goalstep;
+            }
+            float timestepstep = 0.1;
+            if(Event.Key.Code == sf::Key::T) {
+               time_step += timestepstep;
+            }
+            if(Event.Key.Code == sf::Key::G) {
+               time_step -= timestepstep;
+            }
+            float turnstep = 0.1;
+            if(Event.Key.Code == sf::Key::Y) {
+               turn_res += turnstep;
+            }
+            if(Event.Key.Code == sf::Key::H) {
+               turn_res -= turnstep;
+            }
+            if(Event.Key.Code == sf::Key::I) {
+               turn_count++;
+            }
+            if(Event.Key.Code == sf::Key::K) {
+               turn_count--;
+            }
+            if(Event.Key.Code == sf::Key::U) {
+               pcp++;
+            }
+            if(Event.Key.Code == sf::Key::J) {
+               pcp = pcp >0 ? pcp-1 : pcp;
             }
          }
       }   
