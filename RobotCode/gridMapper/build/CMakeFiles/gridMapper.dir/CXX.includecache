@@ -6,13 +6,13 @@
 
 #IncludeRegexTransform: 
 
-/home/parth/Code/ME597/RobotCode/gridMapper/src/body.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/body.hpp
 SFML/Graphics.hpp
 -
 
-/home/parth/Code/ME597/RobotCode/gridMapper/src/consts.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
 
-/home/parth/Code/ME597/RobotCode/gridMapper/src/gridMapper.cpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/gridMapper.cpp
 iostream
 -
 math.h
@@ -24,11 +24,11 @@ vector
 functional
 -
 consts.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/consts.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/consts.hpp
 SFML/Graphics.hpp
 -
 body.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/body.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/body.hpp
 ros/ros.h
 -
 indoor_pos/ips_msg.h
@@ -42,9 +42,9 @@ std_msgs/Float32MultiArray.h
 nav_msgs/Odometry.h
 -
 mapper.hpp
-/home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.hpp
 
-/home/parth/Code/ME597/RobotCode/gridMapper/src/mapper.hpp
+/home/mitch/me597/ME597/RobotCode/gridMapper/src/mapper.hpp
 iostream
 -
 cmath
@@ -58,7 +58,7 @@ ros/ros.h
 sensor_msgs/LaserScan.h
 -
 
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ips_msg.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ips_msg.h
 string
 -
 vector
@@ -68,19 +68,19 @@ map
 ostream
 -
 ros/serialization.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/serialization.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/serialization.h
 ros/builtin_message_traits.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/builtin_message_traits.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/builtin_message_traits.h
 ros/message_operations.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/message_operations.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/message_operations.h
 ros/time.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/time.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/time.h
 ros/macros.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/macros.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/macros.h
 ros/assert.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/assert.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/ros/assert.h
 std_msgs/Header.h
-/home/parth/Code/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/std_msgs/Header.h
+/home/mitch/me597/ME597/RobotCode/indoor_pos/msg_gen/cpp/include/indoor_pos/std_msgs/Header.h
 
 /opt/ros/fuerte/include/XmlRpcDecl.h
 ros/macros.h

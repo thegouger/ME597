@@ -290,7 +290,7 @@ int main (int argc, char* argv[]) {
 
          path = Grid.WavePlanner(sx,sy,gx,gy);
          drawPath(path,PathColor,&Window);
-         int cp = 20;
+         int cp = 15;
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
             WayPoint.linear.y = path->at(cp).y;
@@ -317,6 +317,7 @@ int main (int argc, char* argv[]) {
             WayPoint.linear.y = 1337;
          }
       }
+      //Start = sf::Shape::Circle(X1+PPM*(WayPoint.linear.x-Map_X1),Y2-PPM*(WayPoint.linear.y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
       #ifdef USE_ROS
       waypoint_pub.publish(WayPoint);
       #endif

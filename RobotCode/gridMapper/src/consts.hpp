@@ -23,13 +23,13 @@
 #define RobotWidth 0.162  // meters
 
 // Defines the Reign of Space 
-#define Map_X1 -1 // X, meters
-#define Map_X2 6 // X, meters
+#define Map_X1 -1.0 // X, meters
+#define Map_X2 10 // X, meters
 #define Map_Y1 -2  // Y, meters
 #define Map_Y2 2 // Y, meters
         
-#define Map_XRes 0.05 // meters/cell
-#define Map_YRes 0.05// meters/cell
+#define Map_XRes 0.10 // meters/cell
+#define Map_YRes 0.10// meters/cell
 
 #define wall_tol 2.0*RobotWidth/Map_XRes
 #define goal_tol RobotWidth/1.5

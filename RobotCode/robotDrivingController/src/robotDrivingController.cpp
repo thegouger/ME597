@@ -197,17 +197,22 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
+//*
+   if(waypoints[1](0) != msg->linear.x && waypoints[1](1) != msg->linear.y)
+   {
+     waypoints[0](0) = waypoints[1](0);//mu(0);
+     waypoints[0](1) = waypoints[1](1);//mu(1);
 
-   //if(waypoints[0](0) != waypoints[1](0) && waypoints[0](1) != waypoints[1](1))
-   //{
-    //  waypoints[0](0) = waypoints[1](0);//mu(0);
-     // waypoints[0](1) = waypoints[1](1);//mu(1);
-   //}
-
+     waypoints[1](0) = msg->linear.x;
+     waypoints[1](1) = msg->linear.y;
+   }
+   //*/
+//*
    waypoints[0](0) = mu(0);
    waypoints[0](1) = mu(1);
-   waypoints[1](0) = msg->linear.x;
-   waypoints[1](1) = msg->linear.y;
+     waypoints[1](0) = msg->linear.x;
+     waypoints[1](1) = msg->linear.y;
+//*/
 }
 
 
