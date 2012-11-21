@@ -247,7 +247,7 @@ bool OccupancyGrid::validPosition(int i, int j) {
 State * OccupancyGrid::generateNode(int i, int j,int gi, int gj, float g, State * parent) {
    State * S = new State ;
    S->i = i;   S->j = j;
-   S->g = g + 1 ;
+   S->g = g ;
    S->f = g + H(i,j,gi,gj);
    S->parent = parent;
    return S;
@@ -287,7 +287,7 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
    int count = 0 ;
    while ( !pq.empty() ) {
       count++;
-      if (count > m*n*m*n*m*n*m*n) {
+      if (count > m*n) {
          cout << "findPath failed (node limit reached)\n";
          break;
       }
@@ -297,57 +297,63 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
 
       if (S->i == gi && S->j == gj) break; // reached the goal state
 
-      closed[S->i][S->j] = 1 ;
+         closed[S->i][S->j] = 1 ;
+      if (  closed[S->i][S->j] ==0 ) {
+      } else {
+         //continue;
+      }
+      
       /* Add Neighbours */
       if (validPosition(S->i+1,S->j)) {
          if ( closed[S->i+1][S->j] == 0 ) {
-            //closed[S->i+1][S->j] = 2 ;
-            pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
+            closed[S->i+1][S->j] = 2 ;
+            pq.push(generateNode(S->i+1,S->j,gi,gj,S->g+1,S));
          }
       }
       if (validPosition(S->i-1,S->j)) {
          if ( closed[S->i-1][S->j] == 0 ) {
-            //closed[S->i-1][S->j] = 2;
-            pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
+            closed[S->i-1][S->j] = 2;
+            pq.push(generateNode(S->i-1,S->j,gi,gj,S->g+1,S));
          }
       }
       if (validPosition(S->i,S->j+1)) {
          if ( closed[S->i][S->j+1] == 0 ) {
-            //closed[S->i][S->j+1] = 2;
-            pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
+            closed[S->i][S->j+1] = 2;
+            pq.push(generateNode(S->i,S->j+1,gi,gj,S->g+1,S));
          }
       }
       if (validPosition(S->i,S->j-1)) {
          if ( closed[S->i][S->j-1] == 0 ) {
-            //closed[S->i][S->j-1] = 2;
-            pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
+            closed[S->i][S->j-1] = 2;
+            pq.push(generateNode(S->i,S->j-1,gi,gj,S->g+1,S));
          }
       }
-      /* Diagonal*/
+      /* Diagonal
       if (validPosition(S->i-1,S->j+1)) {
          if ( closed[S->i-1][S->j+1] == 0 ) {
-            closed[S->i-1][S->j-1] = 2;
-            pq.push(generateNode(S->i-1,S->j+1,gi,gj,S->g,S));
+            //closed[S->i-1][S->j-1] = 2;
+            pq.push(generateNode(S->i-1,S->j+1,gi,gj,S->g+sqrt(2),S));
          }
       }
       if (validPosition(S->i+1,S->j+1)) {
          if ( closed[S->i+1][S->j+1] == 0 ) {
-            closed[S->i+1][S->j+1] = 2;
-            pq.push(generateNode(S->i+1,S->j+1,gi,gj,S->g,S));
+            //closed[S->i+1][S->j+1] = 2;
+            pq.push(generateNode(S->i+1,S->j+1,gi,gj,S->g+sqrt(2),S));
          }
       }
       if (validPosition(S->i-1,S->j-1)) {
          if ( closed[S->i-1][S->j-1] == 0 ) {
-            closed[S->i-1][S->j-1] = 2;
-            pq.push(generateNode(S->i-1,S->j-1,gi,gj,S->g,S));
+            //closed[S->i-1][S->j-1] = 2;
+            pq.push(generateNode(S->i-1,S->j-1,gi,gj,S->g+sqrt(2),S));
          }
       }
       if (validPosition(S->i+1,S->j-1)) {
          if ( closed[S->i+1][S->j-1] == 0 ) {
-            closed[S->i+1][S->j-1] = 2;
-            pq.push(generateNode(S->i+1,S->j-1,gi,gj,S->g,S));
+            //closed[S->i+1][S->j-1] = 2;
+            pq.push(generateNode(S->i+1,S->j-1,gi,gj,S->g+sqrt(2),S));
          }
       }
+      */
    }
 
    /* Form the Path */
