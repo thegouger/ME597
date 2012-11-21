@@ -60,15 +60,18 @@ Eigen::Matrix3f Sigma( Matrix3f().Identity() );
 Eigen::Matrix3f K;
 Eigen::Matrix3f C( Matrix3f().Identity() );
 
-bool   position_acquired; // used to determine whether the IPS has given us a position
+bool   position_acquired = false; // used to determine whether the IPS has given us a position
 double old_time;
 
 #ifdef USE_SIM
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-   float old_x, old_y;
+   static float old_x=0, old_y=0;
    double dt = ros::Time::now().toSec() - old_time;
    old_time = ros::Time::now().toSec();
+
+   if(dt > 1)
+     return;
 
    float x,y,Theta;
    x = msg->pose.pose.position.x;
@@ -86,7 +89,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
       mu(2) = Theta;
    }
 
-   current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y));
+   current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y))/dt;
 
    Y(0) = x;
    Y(1) = y;
@@ -107,7 +110,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    epsilon(1) = pos_norm();
    epsilon(2) = theta_norm();
    
-   //Y += epsilon;
+   Y += epsilon;
 
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
@@ -131,9 +134,9 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    outfile << dt  << " " << x << " " << y << " " << Theta << " " << mu(0) << " " << mu(1) << " "
            << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << "\n"; 
 
-  mu(0) = Y(0);
-  mu(1) = Y(1);
-  mu(2) = Y(2);
+   // mu(0) = Y(0);
+   // mu(1) = Y(1);
+   // mu(2) = Y(2);
 
 
 }
@@ -197,22 +200,16 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
-//*
-   if(waypoints[1](0) != msg->linear.x && waypoints[1](1) != msg->linear.y)
+   if(msg->linear.x != waypoints[1](0) && msg->linear.y != waypoints[1](1))
    {
      waypoints[0](0) = waypoints[1](0);//mu(0);
      waypoints[0](1) = waypoints[1](1);//mu(1);
-
-     waypoints[1](0) = msg->linear.x;
-     waypoints[1](1) = msg->linear.y;
    }
-   //*/
-//*
-   waypoints[0](0) = mu(0);
-   waypoints[0](1) = mu(1);
-     waypoints[1](0) = msg->linear.x;
-     waypoints[1](1) = msg->linear.y;
-//*/
+
+   //waypoints[0](0) = mu(0);
+   //waypoints[0](1) = mu(1);
+   waypoints[1](0) = msg->linear.x;
+   waypoints[1](1) = msg->linear.y;
 }
 
 
@@ -256,7 +253,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 1.50; //  0.5f;
+   double ks = 0.300; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
@@ -274,7 +271,6 @@ int main(int argc, char* argv[])
 
    #ifdef USE_SIM
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback);
-   position_acquired = true;
    #endif
    #ifdef LAB2
    ros::Subscriber waypoint_sub = nodeHandle.subscribe("waypoint",1,waypointCallback);
@@ -351,12 +347,11 @@ int main(int argc, char* argv[])
 
     float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
 
-    if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
-    else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
+    if(steer_angle_normalized > 100.0f)       steer_angle_normalized = 100.0f;
+    else if(steer_angle_normalized < -100.0f) steer_angle_normalized = -100.0f;
 
-    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle_normalized/100.0f, vel_output);
+    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, CT Heading: %f, Steering:%f, Current velocity: %f\n", x0, y0, cross_track_err, heading, atan(ks*cross_track_err/current_velocity), steer_angle_normalized/100.0f, current_velocity);
       
-    steer_angle = max_steering_angle;
     cmd_vel.angular.z = steer_angle_normalized;
 
     cmd_vel.linear.x  = 1.5f; // /= 100.0f;
