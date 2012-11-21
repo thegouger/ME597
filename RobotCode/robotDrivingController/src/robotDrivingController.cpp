@@ -197,7 +197,6 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
-
    if(msg->linear.x != waypoints[1](0) && msg->linear.y != waypoints[1](1))
    {
      waypoints[0](0) = waypoints[1](0);//mu(0);
