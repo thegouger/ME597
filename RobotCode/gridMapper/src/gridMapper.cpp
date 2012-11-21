@@ -259,7 +259,7 @@ int main (int argc, char* argv[]) {
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
          path = Grid.WavePlanner(mu_x,mu_y,gx,gy);
-         drawPath(path,Unknown,&Window);
+         drawPath(path,PathColor,&Window);
          if ( path->size() > 3 ) {
             WayPoint.linear.x = path->at(3).x;
             WayPoint.linear.y = path->at(3).y;

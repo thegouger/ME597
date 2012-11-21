@@ -72,7 +72,7 @@ OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2
 
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
-            Map[i][j] = LPLow;
+            Map[i][j] = LP0;
             //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
@@ -224,7 +224,7 @@ OccupancyGrid::~OccupancyGrid(){
 
 /* Heuristic */
 float H(int i, int j, int gi, int gj) {
-   return pow(gi-i,2)+pow(gj-j,2);
+   return sqrt(pow(gi-i,2)+pow(gj-j,2));
 }
 
 float H2(float x, float y, float gx, float gy) {
@@ -237,7 +237,7 @@ bool OccupancyGrid::validPosition(int i, int j) {
 
    for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
       for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
-         if (Map[a][b] > LP0+5.0) return false;
+         if (Map[a][b] > LP0) return false;
       }
    }
 
@@ -301,26 +301,51 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
       /* Add Neighbours */
       if (validPosition(S->i+1,S->j)) {
          if ( closed[S->i+1][S->j] == 0 ) {
-            closed[S->i+1][S->j] = 2 ;
+            //closed[S->i+1][S->j] = 2 ;
             pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
          }
       }
       if (validPosition(S->i-1,S->j)) {
          if ( closed[S->i-1][S->j] == 0 ) {
-            closed[S->i-1][S->j] = 2;
+            //closed[S->i-1][S->j] = 2;
             pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
          }
       }
       if (validPosition(S->i,S->j+1)) {
          if ( closed[S->i][S->j+1] == 0 ) {
-            closed[S->i][S->j+1] = 2;
+            //closed[S->i][S->j+1] = 2;
             pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
          }
       }
       if (validPosition(S->i,S->j-1)) {
          if ( closed[S->i][S->j-1] == 0 ) {
-            closed[S->i][S->j-1] = 2;
+            //closed[S->i][S->j-1] = 2;
             pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
+         }
+      }
+      /* Diagonal*/
+      if (validPosition(S->i-1,S->j+1)) {
+         if ( closed[S->i-1][S->j+1] == 0 ) {
+            closed[S->i-1][S->j-1] = 2;
+            pq.push(generateNode(S->i-1,S->j+1,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i+1,S->j+1)) {
+         if ( closed[S->i+1][S->j+1] == 0 ) {
+            closed[S->i+1][S->j+1] = 2;
+            pq.push(generateNode(S->i+1,S->j+1,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i-1,S->j-1)) {
+         if ( closed[S->i-1][S->j-1] == 0 ) {
+            closed[S->i-1][S->j-1] = 2;
+            pq.push(generateNode(S->i-1,S->j-1,gi,gj,S->g,S));
+         }
+      }
+      if (validPosition(S->i+1,S->j-1)) {
+         if ( closed[S->i+1][S->j-1] == 0 ) {
+            closed[S->i+1][S->j-1] = 2;
+            pq.push(generateNode(S->i+1,S->j-1,gi,gj,S->g,S));
          }
       }
    }
