@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 0.200; //  0.5f;
+   double ks = 0.300; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
