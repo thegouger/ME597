@@ -87,7 +87,6 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
       mu(0) = x;
       mu(1) = y;
       mu(2) = Theta;
-      std::cout<<"MU: ******************************************************" << mu;
    }
 
    current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y))/dt;
@@ -254,7 +253,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 2.00; //  0.5f;
+   double ks = 0.200; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
