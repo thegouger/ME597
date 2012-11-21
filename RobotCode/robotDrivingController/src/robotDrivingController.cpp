@@ -86,7 +86,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
       mu(2) = Theta;
    }
 
-   current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y));
+   current_velocity = sqrt((x-old_x)*(x-old_x) + (y-old_y)*(y-old_y))/dt;
 
    Y(0) = x;
    Y(1) = y;
@@ -131,9 +131,9 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    outfile << dt  << " " << x << " " << y << " " << Theta << " " << mu(0) << " " << mu(1) << " "
            << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << "\n"; 
 
-  mu(0) = Y(0);
-  mu(1) = Y(1);
-  mu(2) = Y(2);
+  //  mu(0) = Y(0);
+  //  mu(1) = Y(1);
+  //  mu(2) = Y(2);
 
 
 }
@@ -198,14 +198,14 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
 
-   //if(waypoints[0](0) != waypoints[1](0) && waypoints[0](1) != waypoints[1](1))
-   //{
-    //  waypoints[0](0) = waypoints[1](0);//mu(0);
-     // waypoints[0](1) = waypoints[1](1);//mu(1);
-   //}
+   if(msg->linear.x != waypoints[1](0) && msg->linear.y != waypoints[1](1))
+   {
+     waypoints[0](0) = waypoints[1](0);//mu(0);
+     waypoints[0](1) = waypoints[1](1);//mu(1);
+   }
 
-   waypoints[0](0) = mu(0);
-   waypoints[0](1) = mu(1);
+   //waypoints[0](0) = mu(0);
+   //waypoints[0](1) = mu(1);
    waypoints[1](0) = msg->linear.x;
    waypoints[1](1) = msg->linear.y;
 }
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 1.50; //  0.5f;
+   double ks = 50.00; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;
@@ -346,12 +346,11 @@ int main(int argc, char* argv[])
 
     float steer_angle_normalized = steer_angle/max_steering_angle * 100.0f;  // percentage
 
-    if(steer_angle_normalized > 100.0f) steer_angle_normalized = 100.0f;
-    else if(steer_angle_normalized < -100.0f)      steer_angle_normalized = -100.0f;
+    if(steer_angle_normalized > 100.0f)       steer_angle_normalized = 100.0f;
+    else if(steer_angle_normalized < -100.0f) steer_angle_normalized = -100.0f;
 
-    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, Steering:%f, Velocity: %f\n", x0, y0, cross_track_err, heading, steer_angle_normalized/100.0f, vel_output);
+    ROS_INFO("Current x: %f, Current y: %f, Cross track error: %f, Heading: %f, CT Heading: %f, Steering:%f, Current velocity: %f\n", x0, y0, cross_track_err, heading, atan(ks*cross_track_err/current_velocity), steer_angle_normalized/100.0f, current_velocity);
       
-    steer_angle = max_steering_angle;
     cmd_vel.angular.z = steer_angle_normalized;
 
     cmd_vel.linear.x  = 1.5f; // /= 100.0f;
