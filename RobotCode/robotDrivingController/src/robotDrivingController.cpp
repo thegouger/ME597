@@ -200,14 +200,16 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
+   /*
    if(msg->linear.x != waypoints[1](0) && msg->linear.y != waypoints[1](1))
    {
      waypoints[0](0) = waypoints[1](0);//mu(0);
      waypoints[0](1) = waypoints[1](1);//mu(1);
    }
+   */
 
-   //waypoints[0](0) = mu(0);
-   //waypoints[0](1) = mu(1);
+   waypoints[0](0) = mu(0);
+   waypoints[0](1) = mu(1);
    waypoints[1](0) = msg->linear.x;
    waypoints[1](1) = msg->linear.y;
 }
@@ -253,7 +255,7 @@ int main(int argc, char* argv[])
    float kp = 100.0f, ki = 10.0f;
 
    // Stanley constant
-   double ks = 0.300; //  0.5f;
+   double ks = 5.50; //  0.5f;
 
    // PID, steering intermediaries
    double err_sum = 0.0f;

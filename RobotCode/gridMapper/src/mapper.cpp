@@ -235,6 +235,7 @@ bool OccupancyGrid::validPosition(int i, int j) {
    if ( i < 0 || i >= m) return false;
    if ( j < 0 || j >= n) return false;
 
+   if (Map[i][j] > LP0) return false;
 /*
    for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
       for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
@@ -309,25 +310,25 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
       if (validPosition(S->i+1,S->j)) {
          if ( closed[S->i+1][S->j] == 0 ) {
             closed[S->i+1][S->j] = 2 ;
-            pq.push(generateNode(S->i+1,S->j,gi,gj,S->g+1,S));
+            pq.push(generateNode(S->i+1,S->j,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i-1,S->j)) {
          if ( closed[S->i-1][S->j] == 0 ) {
             closed[S->i-1][S->j] = 2;
-            pq.push(generateNode(S->i-1,S->j,gi,gj,S->g+1,S));
+            pq.push(generateNode(S->i-1,S->j,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i,S->j+1)) {
          if ( closed[S->i][S->j+1] == 0 ) {
             closed[S->i][S->j+1] = 2;
-            pq.push(generateNode(S->i,S->j+1,gi,gj,S->g+1,S));
+            pq.push(generateNode(S->i,S->j+1,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i,S->j-1)) {
          if ( closed[S->i][S->j-1] == 0 ) {
             closed[S->i][S->j-1] = 2;
-            pq.push(generateNode(S->i,S->j-1,gi,gj,S->g+1,S));
+            pq.push(generateNode(S->i,S->j-1,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       /* Diagonal
@@ -484,7 +485,7 @@ float OccupancyGrid::proxCost(int i, int j) {
    if ( minC == 10000) {
       return 0 ;
    }
-   return 10000/((sqrt(2.2)*wall_tol-minC));
+   return 1000000/(minC);
 }
 
 

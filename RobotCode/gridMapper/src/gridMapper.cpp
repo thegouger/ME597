@@ -48,6 +48,7 @@ bool update_map;
 /* planner params */ 
 float time_step,turn_res,turn_count,goal_tol;
 unsigned int pcp;
+         int cp ;
 
 /* node infos */
 float x,y,theta;
@@ -191,10 +192,11 @@ int main (int argc, char* argv[]) {
    mu_x = mu_y = mu_theta = 0 ;
 
    time_step = 0.2;
-   turn_res = PI/6+0.2;
+   turn_res = PI/6+0.4;
    turn_count = 1;
    goal_tol = 0.13;
-   pcp = 4;
+   pcp = 6;
+    cp = 20;
 
    gx = gy = 0;
    bool plan = false; 
@@ -270,9 +272,11 @@ int main (int argc, char* argv[]) {
          
          drawPath(&ekfPath,GhostColor,&Window);
          drawPath(&truePath,RobotColor,&Window);
-
-         float sx = x;
-         float sy = y;
+         float sx = mu_x;
+         float sy = mu_y;
+         sx = x;
+         sy = y;
+         /*
          if (!Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
             float si = Grid.xtoi(sx);
             float sj = Grid.ytoj(sy);
@@ -298,13 +302,13 @@ int main (int argc, char* argv[]) {
             sx += 2*(sx-x);
             sy += 2*(sy-y);
          }
+         //*/
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
 
 
          path = Grid.WavePlanner(sx,sy,gx,gy);
          drawPath(path,PathColor,&Window);
-         int cp = 10;
          if ( path->size() > cp ) {
             WayPoint.linear.x = path->at(cp).x;
             WayPoint.linear.y = path->at(cp).y;
@@ -319,7 +323,7 @@ int main (int argc, char* argv[]) {
          /* A* */
          #if PATH_PLANNER>0
          
-         path = Grid.findPath2(sx,sy,theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
+         path = Grid.findPath2(sx,sy,mu_theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
          drawPath(path,PathColor,&Window);
          if ( path->size() > pcp ) {
             WayPoint.linear.x = path->at(pcp).x;
@@ -417,9 +421,11 @@ int main (int argc, char* argv[]) {
             }
             if(Event.Key.Code == sf::Key::U) {
                pcp++;
+                cp++;
             }
             if(Event.Key.Code == sf::Key::J) {
                pcp = pcp >0 ? pcp-1 : pcp;
+                cp =  cp >0 ?  cp-1 :  cp;
             }
          }
       }   

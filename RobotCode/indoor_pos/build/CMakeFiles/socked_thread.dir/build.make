@@ -32,10 +32,10 @@ CMAKE_COMMAND = /usr/bin/cmake
 RM = /usr/bin/cmake -E remove -f
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/parth/Code/ME597/RobotCode/indoor_pos
+CMAKE_SOURCE_DIR = /home/mitch/me597/ME597/RobotCode/indoor_pos
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/parth/Code/ME597/RobotCode/indoor_pos/build
+CMAKE_BINARY_DIR = /home/mitch/me597/ME597/RobotCode/indoor_pos/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/socked_thread.dir/depend.make
@@ -52,17 +52,17 @@ CMakeFiles/socked_thread.dir/src/SocketThread.o: ../manifest.xml
 CMakeFiles/socked_thread.dir/src/SocketThread.o: /opt/ros/fuerte/share/roslang/manifest.xml
 CMakeFiles/socked_thread.dir/src/SocketThread.o: /opt/ros/fuerte/share/rospy/manifest.xml
 CMakeFiles/socked_thread.dir/src/SocketThread.o: /opt/ros/fuerte/share/roscpp/manifest.xml
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/parth/Code/ME597/RobotCode/indoor_pos/build/CMakeFiles $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/mitch/me597/ME597/RobotCode/indoor_pos/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/socked_thread.dir/src/SocketThread.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/socked_thread.dir/src/SocketThread.o -c /home/parth/Code/ME597/RobotCode/indoor_pos/src/SocketThread.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -o CMakeFiles/socked_thread.dir/src/SocketThread.o -c /home/mitch/me597/ME597/RobotCode/indoor_pos/src/SocketThread.cpp
 
 CMakeFiles/socked_thread.dir/src/SocketThread.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/socked_thread.dir/src/SocketThread.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/parth/Code/ME597/RobotCode/indoor_pos/src/SocketThread.cpp > CMakeFiles/socked_thread.dir/src/SocketThread.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -E /home/mitch/me597/ME597/RobotCode/indoor_pos/src/SocketThread.cpp > CMakeFiles/socked_thread.dir/src/SocketThread.i
 
 CMakeFiles/socked_thread.dir/src/SocketThread.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/socked_thread.dir/src/SocketThread.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/parth/Code/ME597/RobotCode/indoor_pos/src/SocketThread.cpp -o CMakeFiles/socked_thread.dir/src/SocketThread.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -W -Wall -Wno-unused-parameter -fno-strict-aliasing -pthread -S /home/mitch/me597/ME597/RobotCode/indoor_pos/src/SocketThread.cpp -o CMakeFiles/socked_thread.dir/src/SocketThread.s
 
 CMakeFiles/socked_thread.dir/src/SocketThread.o.requires:
 .PHONY : CMakeFiles/socked_thread.dir/src/SocketThread.o.requires
@@ -98,6 +98,6 @@ CMakeFiles/socked_thread.dir/clean:
 .PHONY : CMakeFiles/socked_thread.dir/clean
 
 CMakeFiles/socked_thread.dir/depend:
-	cd /home/parth/Code/ME597/RobotCode/indoor_pos/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/parth/Code/ME597/RobotCode/indoor_pos /home/parth/Code/ME597/RobotCode/indoor_pos /home/parth/Code/ME597/RobotCode/indoor_pos/build /home/parth/Code/ME597/RobotCode/indoor_pos/build /home/parth/Code/ME597/RobotCode/indoor_pos/build/CMakeFiles/socked_thread.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/mitch/me597/ME597/RobotCode/indoor_pos/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/mitch/me597/ME597/RobotCode/indoor_pos /home/mitch/me597/ME597/RobotCode/indoor_pos /home/mitch/me597/ME597/RobotCode/indoor_pos/build /home/mitch/me597/ME597/RobotCode/indoor_pos/build /home/mitch/me597/ME597/RobotCode/indoor_pos/build/CMakeFiles/socked_thread.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/socked_thread.dir/depend
 
