@@ -47,6 +47,7 @@ bool update_map;
 
 /* planner params */ 
 float time_step,turn_res,turn_count,goal_tol;
+bool useWave;
 unsigned int pcp;
          int cp ;
 
@@ -196,7 +197,8 @@ int main (int argc, char* argv[]) {
    turn_count = 1;
    goal_tol = 0.13;
    pcp = 6;
-    cp = 20;
+    cp = 15;
+   useWave = true;
 
    gx = gy = 0;
    bool plan = false; 
@@ -305,35 +307,38 @@ int main (int argc, char* argv[]) {
          //*/
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
-
-
-         path = Grid.WavePlanner(sx,sy,gx,gy);
-         drawPath(path,PathColor,&Window);
-         if ( path->size() > cp ) {
-            WayPoint.linear.x = path->at(cp).x;
-            WayPoint.linear.y = path->at(cp).y;
+         
+         if (useWave) { 
+            path = Grid.WavePlanner(sx,sy,gx,gy);
+            drawPath(path,PathColor,&Window);
+            if ( path->size() > cp ) {
+               WayPoint.linear.x = path->at(cp).x;
+               WayPoint.linear.y = path->at(cp).y;
+            }
+            else if ( path->size() > 0 ) {
+               WayPoint.linear.x = path->at(path->size()-1).x;
+               WayPoint.linear.y = path->at(path->size()-1).y;
+            }
+            delete path;
          }
-         else if ( path->size() > 0 ) {
-            WayPoint.linear.x = path->at(path->size()-1).x;
-            WayPoint.linear.y = path->at(path->size()-1).y;
-         }
-         delete path;
          #endif
          
          /* A* */
          #if PATH_PLANNER>0
          
-         path = Grid.findPath2(sx,sy,mu_theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
-         drawPath(path,PathColor,&Window);
-         if ( path->size() > pcp ) {
-            WayPoint.linear.x = path->at(pcp).x;
-            WayPoint.linear.y = path->at(pcp).y;
+         if ( !useWave ) {
+            path = Grid.findPath2(sx,sy,mu_theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
+            drawPath(path,PathColor,&Window);
+            if ( path->size() > pcp ) {
+               WayPoint.linear.x = path->at(pcp).x;
+               WayPoint.linear.y = path->at(pcp).y;
+            }
+            else if ( path->size() > 0 ) {
+               WayPoint.linear.x = path->at(path->size()-1).x;
+               WayPoint.linear.y = path->at(path->size()-1).y;
+            }
+            delete path;
          }
-         else if ( path->size() > 0 ) {
-            WayPoint.linear.x = path->at(path->size()-1).x;
-            WayPoint.linear.y = path->at(path->size()-1).y;
-         }
-         delete path;
          #endif
          if ( mag(sx,sy,gx,gy) < goal_tol) {
             WayPoint.linear.x = 1337;
@@ -384,7 +389,7 @@ int main (int argc, char* argv[]) {
                truePath.clear();
             }
             if(Event.Key.Code == sf::Key::P) {
-               update_map = !update_map;
+               useWave = !useWave;
             }
             if(Event.Key.Code == sf::Key::S) {
                Grid.saveMap("Map");

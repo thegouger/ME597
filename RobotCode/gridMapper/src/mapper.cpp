@@ -471,7 +471,7 @@ float OccupancyGrid::proxCost(int i, int j) {
    if ( i < 0 || i >= m) return false;
    if ( j < 0 || j >= n) return false;
 
-   float tmpC,minC = 10000;
+   float tmpC,minC = wall_tol;
    for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
       for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
          if (Map[a][b] > LP0) {
@@ -482,10 +482,11 @@ float OccupancyGrid::proxCost(int i, int j) {
          }
       }
    }
-   if ( minC == 10000) {
+   if ( minC == wall_tol ) {
       return 0 ;
    }
-   return 1000000/(minC);
+   //return 10000*( pow(wall_tol,2)-pow(minC,2) );
+   return 10000*( wall_tol-minC );
 }
 
 
