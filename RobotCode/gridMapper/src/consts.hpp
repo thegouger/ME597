@@ -13,7 +13,7 @@
    #define USE_SIMULATOR
 #endif
 
-#define PATH_PLANNER 2 // 0: wavefront, 1: A*, 2: Both
+#define PATH_PLANNER 1 // 0: wavefront, 1: A*, 2: Both
 
 #define PPM 50 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness

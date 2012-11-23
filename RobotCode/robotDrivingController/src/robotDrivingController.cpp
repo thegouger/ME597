@@ -18,6 +18,7 @@
 
 #ifdef USE_SIM
 #include <nav_msgs/Odometry.h>
+#include <gazebo_msgs/LinkStates.h>
 #endif
 
 using namespace Eigen;
@@ -33,19 +34,21 @@ Vector2f waypoints[4]; // 4
 // Measurements
 Vector3f Y_noiseless;
 Vector3f Y;
-Matrix3f Q( (Matrix3f() << 0.05*0.05, 0,      0,
-                              0,      0.05*0.05,  0,
-                              0,      0,           0.0524*0.0524).finished() );
+
+// .05, .05, .0524
+Matrix3f Q( (Matrix3f() << 0.1*0.1, 0,      0,
+                              0,      0.1*0.1,  0,
+                              0,      0,           0.0824*0.0824).finished() );
 Matrix3f R( (Matrix3f() << 0.01*0.01, 0,      0,
                               0,     0.01*0.01,  0,
-                              0,     0,          0.1*0.1).finished() );
+                              0,     0,          0.03*0.03).finished() );
 float current_velocity;
 float steer_angle;
 
 // normal random generation
 boost::mt19937 rng;
-boost::normal_distribution<double> pos(0.0, 0.05);
-boost::normal_distribution<double> theta(0.0, 0.0524);
+boost::normal_distribution<double> pos(0.0, 0.10);
+boost::normal_distribution<double> theta(0.0, 0.0824);
 boost::variate_generator<boost::mt19937&,
                          boost::normal_distribution<double> > pos_norm(rng, pos);
 
@@ -64,6 +67,8 @@ bool   position_acquired = false; // used to determine whether the IPS has given
 double old_time;
 
 #ifdef USE_SIM
+float actual_steering_angle;
+
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
    static float old_x=0, old_y=0;
@@ -95,6 +100,8 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    Y(1) = y;
    Y(2) = Theta;
 
+   Y_noiseless = Y;
+
    old_x = x;
    old_y = y;
    
@@ -115,7 +122,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
    mu_p(1) = mu(1) + current_velocity*sin(mu(2))*dt;
-   mu_p(2) = mu(2) + (current_velocity*tan(steer_angle)*dt)/L;
+   mu_p(2) = mu(2) + (current_velocity*tan(actual_steering_angle)*dt)/L;
    if(mu_p(2) > 3.14159)       mu_p(2) -= 2*3.14159;
    else if(mu_p(2) < -3.14159) mu_p(2) += 2*3.14159; 
 
@@ -132,7 +139,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    Sigma = (Matrix3f().Identity() - K*C)*Sigma_p;
 
    outfile << dt  << " " << x << " " << y << " " << Theta << " " << mu(0) << " " << mu(1) << " "
-           << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << "\n"; 
+           << mu(2) << " " << Y(0) << " " << Y(1) << " " << Y(2) << " " << actual_steering_angle << "\n"; 
 
    // mu(0) = Y(0);
    // mu(1) = Y(1);
@@ -140,6 +147,17 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 
 
 }
+
+void steer_link_callback(const gazebo_msgs::LinkStates::ConstPtr& msg)
+{
+   float q_x = msg->pose[8].orientation.x, q_y = msg->pose[8].orientation.y, q_z = msg->pose[8].orientation.z, q_w = msg->pose[8].orientation.w;
+ 
+   float relative_steering_angle = atan2(2*q_w*q_z + 2*q_x*q_y, 1 - 2*q_y*q_y - 2*q_z*q_z);
+   actual_steering_angle = acos(cos(relative_steering_angle) * cos(Y_noiseless(2)) + sin(relative_steering_angle) * sin(Y_noiseless(2)));
+   float cross = sin(relative_steering_angle)*cos(Y_noiseless(2)) - cos(relative_steering_angle) * sin(Y_noiseless(2));
+   actual_steering_angle *= cross/fabs(cross);
+}
+
 #endif
 
 void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
@@ -260,7 +278,7 @@ int main(int argc, char* argv[])
    // PID, steering intermediaries
    double err_sum = 0.0f;
 
-   double max_steering_angle = 1.04 * .8; // < 20 deg ? (average of two links)
+   double max_steering_angle = 1.04; // < 20 deg ? (average of two links)
 
    // msgs to send/receive
    geometry_msgs::Twist cmd_vel;
@@ -273,6 +291,7 @@ int main(int argc, char* argv[])
 
    #ifdef USE_SIM
    ros::Subscriber state_sub = nodeHandle.subscribe("base_pose_ground_truth", 1, stateCallback);
+   ros::Subscriber steer_sub = nodeHandle.subscribe("gazebo/link_states", 1, steer_link_callback);
    #endif
    #ifdef LAB2
    ros::Subscriber waypoint_sub = nodeHandle.subscribe("waypoint",1,waypointCallback);
@@ -367,6 +386,10 @@ int main(int argc, char* argv[])
     #ifdef USE_SIM
     cmd_vel.angular.z /= 100.0f;
     #endif
+
+    // EKF data
+    steer_angle = max_steering_angle;
+    cmd_vel.angular.z = 1.0f;
     cmd_vel_pub.publish(cmd_vel);
 
     estimate.linear.x = mu(0);
