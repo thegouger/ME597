@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "consts.hpp"
+#include "mapper.hpp"
 
 #ifdef USE_SFML
    #include <SFML/Graphics.hpp>
@@ -23,11 +24,9 @@
 
 using namespace std;
 
-#include "mapper.hpp"
-//#include "planner.hpp"
 
-/* All The Colours */
 #ifdef USE_SFML
+/* All The Colours */
 sf::Color RobotColor(214,246,0);
 sf::Color GhostColor(9,101,205);
 sf::Color PathColor(255,0,192);
@@ -42,14 +41,11 @@ sf::Color Unknown(32,32,32);
 
 LaserScanner scanner;
 
-/* control flags */
-bool update_map;
-
 /* planner params */ 
 float time_step,turn_res,turn_count,goal_tol;
 bool useWave;
 unsigned int pcp;
-         int cp ;
+int cp ;
 
 /* node infos */
 float x,y,theta;
@@ -58,6 +54,7 @@ float mu_x,mu_y,mu_theta;
 /* Goal Position */
 float gx; // m
 float gy; // m
+
 
 float mag(float x1, float y1, float x2, float y2) {
    return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
@@ -89,9 +86,11 @@ void IPSCallback(const indoor_pos::ips_msg::ConstPtr& msg) {
    x = msg->X;
    y = msg->Y;
    theta = msg->Yaw;
+   /*
    scanner.x = x;
    scanner.y = y;
    scanner.theta = theta;
+   */
 }
 #endif
 void ekfCallback(const geometry_msgs::Twist::ConstPtr& msg) { 
@@ -109,7 +108,8 @@ void ekfCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 void  colorTransform (float p,sf::Color & C) {
    float P0 = 0.5;
    float PHigh = 0.7;
-   float PLow = 0.3; // <- will fix later
+   float PLow = 0.3;
+
    if (p > PHigh) {
       C = Full;
    }
@@ -145,7 +145,6 @@ void drawMap(OccupancyGrid *grid,sf::RenderWindow * W) {
    }
 }
 
-   //*
 void drawPath(const vector<Vector2d> * path,const sf::Color &C,sf::RenderWindow *W) {
    float x1,x2,y1,y2;
    sf::Shape Line;
@@ -158,7 +157,6 @@ void drawPath(const vector<Vector2d> * path,const sf::Color &C,sf::RenderWindow 
       W->Draw(Line);
    }
 }
-
 #endif
 
 /* --- Main Function --- */
@@ -168,8 +166,6 @@ int main (int argc, char* argv[]) {
    #ifdef LIMITFPS
       Window.SetFramerateLimit(MAXFPS) ;
    #endif
-
-
    /* ----- Setup ----- */
    sf::Shape Goal,Start;
 
@@ -189,21 +185,23 @@ int main (int argc, char* argv[]) {
    Ghost.AddChild(&GHead);
    #endif
 
+   /* --- Initialise Stuff --- */
+   gx = gy = 0;
    x = y = theta = 0 ;
    mu_x = mu_y = mu_theta = 0 ;
 
+   bool plan = false; 
+   useWave = true;
    time_step = 0.2;
    turn_res = PI/6+0.4;
    turn_count = 1;
    goal_tol = 0.13;
    pcp = 6;
-    cp = 15;
-   useWave = true;
-
-   gx = gy = 0;
-   bool plan = false; 
+   cp = 15;
 
    OccupancyGrid Grid(Map_X1,Map_X2,Map_Y1,Map_Y2,Map_XRes,Map_YRes);
+   vector<Vector2d> truePath,ekfPath;;
+   Vector2d tmpP;
    /*/ Test Obstacles
    //Grid.fillMap(0.55,0.8,0.25,1);   
    //Grid.fillMap(-0.5,-0.25,-0.5,0.5);   
@@ -211,15 +209,12 @@ int main (int argc, char* argv[]) {
    Grid.fillMap(2.5,3,-0.5,0.5);   
    Grid.fillMap(5.5,6,0.5,1.5);   
    //*/
-   vector<Vector2d> truePath,ekfPath;;
-   Vector2d tmpP;
 
    #ifdef USE_ROS
    ros::init(argc, argv, "gridMapper");
    ROS_INFO("Combined Mapper and Path Planner");
 
    ros::NodeHandle nodeHandle;
-
    scanner.grid = &Grid;
 
    geometry_msgs::Twist WayPoint ;
@@ -234,15 +229,14 @@ int main (int argc, char* argv[]) {
    #endif
    #endif
 
-   /* ------------------------ */
-#ifdef USE_ROS
-   while(ros::ok()) {// <-- Replace with ROS 
+   /* ------ Loop ------ */
+   while(true) {
+      #ifdef USE_ROS
+      if (!ros::ok()) break;
       ros::spinOnce();
-#else
-   while(1) {
-#endif 
-      /* ------ Loop ------ */
+      #endif
       #ifdef USE_SFML
+      if (!Window.IsOpened()) break;
       Window.Clear(BG) ;
       drawMap(&Grid,&Window);
       #endif
@@ -265,51 +259,18 @@ int main (int argc, char* argv[]) {
          Window.Draw(Start);
          Window.Draw(Goal);
 
-         tmpP.x = mu_x;
-         tmpP.y = mu_y ;
+         tmpP.x = mu_x; tmpP.y = mu_y ;
          ekfPath.insert(ekfPath.end(),tmpP);
-         tmpP.x = x;
-         tmpP.y = y ;
+         tmpP.x = x; tmpP.y = y ;
          truePath.insert(truePath.end(),tmpP);
          
          drawPath(&ekfPath,GhostColor,&Window);
          drawPath(&truePath,RobotColor,&Window);
-         float sx = mu_x;
-         float sy = mu_y;
-         sx = x;
-         sy = y;
-         /*
-         if (!Grid.validPosition(Grid.xtoi(sx),Grid.ytoj(sy))) {
-            float si = Grid.xtoi(sx);
-            float sj = Grid.ytoj(sy);
-            int ti = si;
-            int tj = sj;
-            int f = 1;
-            while (!Grid.validPosition(ti,tj)) {
-               for (int a=si-f; a<si+f; a++) {
-                  for (int b=sj-f; b<sj+f; b++) {
-                     if (Grid.validPosition(a,b)) {
-                        sx = Grid.itox(a);  
-                        sy = Grid.jtoy(b);  
-                        f = 0 ;
-                        break;
-                     }
-                     
-                  }
-                  if (f==0) break;
-               }
-               if (f==0) break;
-               f++;
-            }
-            sx += 2*(sx-x);
-            sy += 2*(sy-y);
-         }
-         //*/
+         
          /* Wavefront */
          #if PATH_PLANNER<1 || PATH_PLANNER >1
-         
-         if (useWave) { 
-            path = Grid.WavePlanner(sx,sy,gx,gy);
+         if ( useWave ) { 
+            path = Grid.WavePlanner(mu_x,mu_y,gx,gy);
             drawPath(path,PathColor,&Window);
             if ( path->size() > cp ) {
                WayPoint.linear.x = path->at(cp).x;
@@ -323,11 +284,10 @@ int main (int argc, char* argv[]) {
          }
          #endif
          
-         /* A* */
+         /* Direct */
          #if PATH_PLANNER>0
-         
          if ( !useWave ) {
-            path = Grid.findPath2(sx,sy,mu_theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
+            path = Grid.DirectPlanner(mu_x,mu_y,mu_theta,gx,gy,time_step,turn_res,turn_count,goal_tol);
             drawPath(path,PathColor,&Window);
             if ( path->size() > pcp ) {
                WayPoint.linear.x = path->at(pcp).x;
@@ -340,11 +300,12 @@ int main (int argc, char* argv[]) {
             delete path;
          }
          #endif
-         if ( mag(sx,sy,gx,gy) < goal_tol) {
+         
+         if ( mag(mu_x,mu_y,gx,gy) < goal_tol) {
             WayPoint.linear.x = 1337;
             WayPoint.linear.y = 1337;
          }
-         //Start = sf::Shape::Circle(X1+PPM*(sx-Map_X1),Y2-PPM*(sy-Map_Y1), goal_tol*PPM, BG,2,Unknown);
+         //Start = sf::Shape::Circle(X1+PPM*(mu_x-Map_X1),Y2-PPM*(mu_y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
          //Goal = sf::Shape::Circle(X1+PPM*(gx-Map_X1),Y2-PPM*(gy-Map_Y1), goal_tol*PPM, PathColor,2,Unknown) ;
       }
       //Start = sf::Shape::Circle(X1+PPM*(WayPoint.linear.x-Map_X1),Y2-PPM*(WayPoint.linear.y-Map_Y1), goal_tol*PPM, BG,2,Unknown);
@@ -364,6 +325,7 @@ int main (int argc, char* argv[]) {
       Ghost.Draw(&Window);
       Robot.Draw(&Window);
       /* ------------------------ */
+
       Window.Display() ;
       sf::Event Event;
       while (Window.GetEvent(Event)) {
