@@ -15,7 +15,7 @@
 
 #define PATH_PLANNER 1 // 0: wavefront, 1: A*, 2: Both
 
-#define PPM 50 // Pixels per Meter
+#define PPM 70 // Pixels per Meter
 #define WT 20 // Pool Wall Thickness
 #define PathThickness 2 // Pixels
 
@@ -25,8 +25,8 @@
 // Defines the Reign of Space 
 #define Map_X1 -1.0 // X, meters
 #define Map_X2 10 // X, meters
-#define Map_Y1 -3  // Y, meters
-#define Map_Y2 3 // Y, meters
+#define Map_Y1 -4  // Y, meters
+#define Map_Y2 4 // Y, meters
         
 #define Map_XRes 0.10 // meters/cell
 #define Map_YRes 0.10// meters/cell

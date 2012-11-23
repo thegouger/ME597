@@ -73,7 +73,6 @@ OccupancyGrid::OccupancyGrid(float map_x1,float map_x2,float map_y1,float map_y2
    for (int i=0; i<m; i++) {
        for (int j=0; j<n; j++) {
             Map[i][j] = LP0;
-            //Map[i][j] = LPLow+i*(LPHigh-LPLow)/n;
        }
    }
 }
@@ -221,14 +220,68 @@ OccupancyGrid::~OccupancyGrid(){
    delete Map;
 }
 /* --- Path Planning --- */
+float MAG(float x1,float x2,float y1,float y2) {
+   return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
+}
+float MAG(float x,float y) {
+   return sqrt ( pow(x,2) + pow(y,2) ) ;
+}
 
-/* Heuristic */
+float ANG(float x1,float y1, float x2, float y2) {
+   float phi;
+   phi = acos(x1*x2 + y1*y2 )/(MAG(x1,y1)*MAG(x2,y2));
+   phi *= ( y2*x1 - x2*y1 ) > 0 ? 1 : -1 ; 
+   return phi;
+}
+
+/* Heuristics */
 float H(int i, int j, int gi, int gj) {
    return (pow(gi-i,2)+pow(gj-j,2));
 }
 
-float H2(float x, float y, float gx, float gy) {
+float StraightLineHeuristic(float x, float y, float gx, float gy) {
    return sqrt(pow(gx-x,2)+pow(gy-y,2));
+}
+
+float RobotHeuristic(float x, float y,float theta,float dt, float angRes, float gx, float gy) {
+   int i=0;
+   float phi = ANG(gx-x,gy-y,cos(theta),sin(theta));
+   while (phi > angRes)  { 
+      x += cos(theta)*dt;
+      y += sin(theta)*dt;
+      if (phi < 0) {
+         theta += angRes*dt;
+      }
+      else if (phi > 0 ) {
+         theta -= angRes*dt;
+      }
+      phi = ANG(gx-x,gy-y,cos(theta),sin(theta));
+      i++;
+   } 
+
+   return dt*i + sqrt(pow(gx-x,2)+pow(gy-y,2));
+}
+/* End Heuristics */
+
+float OccupancyGrid::proxCost(int i, int j) {
+   if ( i < 0 || i >= m) return false;
+   if ( j < 0 || j >= n) return false;
+
+   float tmpC,minC = wall_tol;
+   for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
+      for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
+         if (Map[a][b] > LP0) {
+            tmpC = sqrt( pow(a-i,2) + pow(b-j,2) ) ;
+            if (tmpC < minC){
+               minC = tmpC;
+            }
+         }
+      }
+   }
+   if ( minC == wall_tol ) {
+      return 0 ;
+   }
+   return 10000*( wall_tol-minC );
 }
 
 bool OccupancyGrid::validPosition(int i, int j) {
@@ -236,13 +289,6 @@ bool OccupancyGrid::validPosition(int i, int j) {
    if ( j < 0 || j >= n) return false;
 
    if (Map[i][j] > LP0) return false;
-/*
-   for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
-      for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
-         if (Map[a][b] > LP0) return false;
-      }
-   }
-   */
 
    return true ;
 }
@@ -260,8 +306,8 @@ State * OccupancyGrid::generateNode(float x, float y, float theta, float gx, flo
    State * S = new State ;
    S->x = x;   S->y = y;
    S->theta = theta;
-   S->g = g ; //+ Map[xtoi(x)][ytoj(y)];
-   S->f = g + H2(x,y,gx,gy);
+   S->g = g ;
+   S->f = g + StraightLineHeuristic(x,y,gx,gy);
    S->parent = parent;
    return S;
 }
@@ -290,8 +336,8 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
    int count = 0 ;
    while ( !pq.empty() ) {
       count++;
-      if (count > m*n) {
-         cout << "findPath failed (node limit reached)\n";
+      if (count > 2*m*n) {
+         cout << "WavePlanner failed (node limit reached)\n";
          break;
       }
       S = pq.top();
@@ -300,34 +346,31 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
 
       if (S->i == gi && S->j == gj) break; // reached the goal state
 
+      if ( closed[S->i][S->j] ) continue;
       closed[S->i][S->j] = 1 ;
-      if (  closed[S->i][S->j] ==0 ) {
-      } else {
-         //continue;
-      }
-      
+
       /* Add Neighbours */
       if (validPosition(S->i+1,S->j)) {
          if ( closed[S->i+1][S->j] == 0 ) {
-            closed[S->i+1][S->j] = 2 ;
+            //closed[S->i+1][S->j] = 2 ;
             pq.push(generateNode(S->i+1,S->j,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i-1,S->j)) {
          if ( closed[S->i-1][S->j] == 0 ) {
-            closed[S->i-1][S->j] = 2;
+            //closed[S->i-1][S->j] = 2;
             pq.push(generateNode(S->i-1,S->j,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i,S->j+1)) {
          if ( closed[S->i][S->j+1] == 0 ) {
-            closed[S->i][S->j+1] = 2;
+            //closed[S->i][S->j+1] = 2;
             pq.push(generateNode(S->i,S->j+1,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i,S->j-1)) {
          if ( closed[S->i][S->j-1] == 0 ) {
-            closed[S->i][S->j-1] = 2;
+            //closed[S->i][S->j-1] = 2;
             pq.push(generateNode(S->i,S->j-1,gi,gj,S->g+1+proxCost(S->i,S->j),S));
          }
       }
@@ -335,28 +378,28 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
       if (validPosition(S->i-1,S->j+1)) {
          if ( closed[S->i-1][S->j+1] == 0 ) {
             //closed[S->i-1][S->j-1] = 2;
-            pq.push(generateNode(S->i-1,S->j+1,gi,gj,S->g+sqrt(2),S));
+            pq.push(generateNode(S->i-1,S->j+1,gi,gj,S->g+sqrt(2)+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i+1,S->j+1)) {
          if ( closed[S->i+1][S->j+1] == 0 ) {
             //closed[S->i+1][S->j+1] = 2;
-            pq.push(generateNode(S->i+1,S->j+1,gi,gj,S->g+sqrt(2),S));
+            pq.push(generateNode(S->i+1,S->j+1,gi,gj,S->g+sqrt(2)+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i-1,S->j-1)) {
          if ( closed[S->i-1][S->j-1] == 0 ) {
             //closed[S->i-1][S->j-1] = 2;
-            pq.push(generateNode(S->i-1,S->j-1,gi,gj,S->g+sqrt(2),S));
+            pq.push(generateNode(S->i-1,S->j-1,gi,gj,S->g+sqrt(2)+proxCost(S->i,S->j),S));
          }
       }
       if (validPosition(S->i+1,S->j-1)) {
          if ( closed[S->i+1][S->j-1] == 0 ) {
             //closed[S->i+1][S->j-1] = 2;
-            pq.push(generateNode(S->i+1,S->j-1,gi,gj,S->g+sqrt(2),S));
+            pq.push(generateNode(S->i+1,S->j-1,gi,gj,S->g+sqrt(2)+proxCost(S->i,S->j),S));
          }
       }
-      */
+      //*/
    }
 
    /* Form the Path */
@@ -370,6 +413,8 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
          S = S->parent;
       }
    }
+
+   cout << "Nodes: "<<count << ", Length: " << path->size() << endl;
 
    /* Free all the memory */
    while ( !pq.empty() ) {
@@ -385,80 +430,6 @@ OccupancyGrid::WavePlanner(float sX,float sY,float gX,float gY) {
 
    /* Return the Path */
    return path;
-}
-std::vector<Vector2d> * 
-OccupancyGrid::findPath(float sX,float sY,float gX,float gY) {
-   int si = xtoi(sX);
-   int sj = ytoj(sY);
-   int gi = xtoi(gX);
-   int gj = ytoj(gY);
-   
-   State *S; 
-
-   std::priority_queue<State*, std::vector<State*>, CompareState > pq;
-   std::list<State*> freeList;
-    
-   pq.push(generateNode(si,sj,gi,gj,0,NULL));
-
-   /* Search for the goal Sate */
-   int count = 0 ;
-   while ( !pq.empty() ) {
-      count++;
-      if (count > m*n) {
-         cout << "findPath failed (node limit reached)\n";
-         break;
-      }
-      S = pq.top();
-      pq.pop();
-      freeList.push_front(S);
-
-      if (S->i == gi && S->j == gj) break; // reached the goal state
-
-      /* Add Neighbours */
-      if (validPosition(S->i+1,S->j)) {
-         pq.push(generateNode(S->i+1,S->j,gi,gj,S->g,S));
-      }
-      if (validPosition(S->i-1,S->j)) {
-         pq.push(generateNode(S->i-1,S->j,gi,gj,S->g,S));
-      }
-      if (validPosition(S->i,S->j+1)) {
-         pq.push(generateNode(S->i,S->j+1,gi,gj,S->g,S));
-      }
-      if (validPosition(S->i,S->j-1)) {
-         pq.push(generateNode(S->i,S->j-1,gi,gj,S->g,S));
-      }
-   }
-
-   /* Form the Path */
-   std::vector<Vector2d> *path = new std::vector<Vector2d>;
-   if (S != NULL && S->i == gi && S->j == gj) {
-      while (S != NULL) {
-         Vector2d p; 
-         p.x = itox(S->i);
-         p.y = jtoy(S->j);
-         path->insert(path->begin(),p);
-         S = S->parent;
-      }
-   }
-
-   /* Free all the memory */
-   while ( !pq.empty() ) {
-      S = pq.top();
-      pq.pop();
-      delete S;
-   }
-   while ( !freeList.empty() ) {
-      S = freeList.front();
-      freeList.pop_front();
-      delete S;
-   }
-
-   /* Return the Path */
-   return path;
-}
-
-float MAG(float x1,float x2,float y1,float y2) {
-   return sqrt ( pow(x2-x1,2) + pow(y2-y1,2) ) ;
 }
 
 void MotionStep (float x, float y, float t, float &x2, float &y2, float &t2, float dt, float w) {
@@ -467,31 +438,8 @@ void MotionStep (float x, float y, float t, float &x2, float &y2, float &t2, flo
    t2 = t + w*dt;
 }
 
-float OccupancyGrid::proxCost(int i, int j) {
-   if ( i < 0 || i >= m) return false;
-   if ( j < 0 || j >= n) return false;
-
-   float tmpC,minC = wall_tol;
-   for (int a=fmax(0,i-wall_tol); a<fmin(m,i+wall_tol); a++) {
-      for (int b=fmax(0,j-wall_tol); b<fmin(n,j+wall_tol); b++) {
-         if (Map[a][b] > LP0) {
-            tmpC = sqrt( pow(a-i,2) + pow(b-j,2) ) ;
-            if (tmpC < minC){
-               minC = tmpC;
-            }
-         }
-      }
-   }
-   if ( minC == wall_tol ) {
-      return 0 ;
-   }
-   //return 10000*( pow(wall_tol,2)-pow(minC,2) );
-   return 10000*( wall_tol-minC );
-}
-
-
 std::vector<Vector2d> * 
-OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY, float time_step, float turn_res, float turn_count,float goal_tol) {
+OccupancyGrid::DirectPlanner(float sX,float sY,float Theta,float gX,float gY, float time_step, float turn_res, float turn_count,float goal_tol) {
    State *S; 
    float tol = goal_tol;
    float tx,ty,tang;
@@ -515,8 +463,8 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY, float 
    /* Search for the goal Sate */
    int count = 0 ;
    while ( !pq.empty() ) {
-      if (count > 30*m*n) {
-         std::cout << "findPath2 failed (node limit reached)\n" ;
+      if (count > 5*m*n) {
+         std::cout << "DirectPlanner failed (node limit reached)\n" ;
          break;
       }
       S = pq.top();
@@ -548,7 +496,7 @@ OccupancyGrid::findPath2(float sX,float sY,float Theta,float gX,float gY, float 
       MotionStep(S->x,S->y,S->theta,tx,ty,tang,dt,0);
       if ( validPosition(xtoi(tx),ytoj(ty)) ) {
          if ( 1 || !closed[xtoi(tx)][ytoj(ty)] ) { 
-            closed[xtoi(tx)][ytoj(ty)] = 1 ; 
+            //closed[xtoi(tx)][ytoj(ty)] = 1 ; 
             pq.push( generateNode(tx,ty,tang,gX,gY,S->g+MAG(tx,S->x,ty,S->y)+proxCost(xtoi(tx),ytoj(ty)),S));
          }
       }
