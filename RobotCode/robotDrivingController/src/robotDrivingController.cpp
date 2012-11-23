@@ -388,8 +388,6 @@ int main(int argc, char* argv[])
     #endif
 
     // EKF data
-    steer_angle = max_steering_angle;
-    cmd_vel.angular.z = 1.0f;
     cmd_vel_pub.publish(cmd_vel);
 
     estimate.linear.x = mu(0);
