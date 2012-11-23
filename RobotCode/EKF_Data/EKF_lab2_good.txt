@@ -1,4 +1,4 @@
-timestamp   actual_x   actual_y     actual_t    velocity    x_estimate    y_estimate   t_estimate   x_mes  y_mes  t_mes 
+timestamp   actual_x   actual_y     actual_t    x_estimate    y_estimate   t_estimate   x_mes  y_mes  t_mes 
 0.05 0.00307547 2.24011e-06 -3.40946e-05 0.0242078 -0.0490613 0.128901 0.0244191 -0.0495558 0.129777 -3.08324e-06
 0.05 0.0170163 1.90503e-05 3.31096e-05 0.119582 0.0699726 0.0149853 0.200943 0.188596 -0.0872453 0.00339545
 0.05 0.0351105 9.01105e-05 0.000445531 0.12347 0.0338587 -0.00965168 0.095578 -0.0365082 -0.0472034 0.0129649
