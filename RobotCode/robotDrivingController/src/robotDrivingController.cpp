@@ -122,7 +122,7 @@ void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
    // Prediction update
    mu_p(0) = mu(0) + current_velocity*cos(mu(2))*dt;
    mu_p(1) = mu(1) + current_velocity*sin(mu(2))*dt;
-   mu_p(2) = mu(2) + (current_velocity*tan(actual_steering_angle)*dt)/L;
+   mu_p(2) = mu(2) + (current_velocity*tan(0.2)*dt)/L;
    if(mu_p(2) > 3.14159)       mu_p(2) -= 2*3.14159;
    else if(mu_p(2) < -3.14159) mu_p(2) += 2*3.14159; 
 
@@ -388,6 +388,7 @@ int main(int argc, char* argv[])
     #endif
 
     // EKF data
+    cmd_vel.angular.z = 1.0f;
     cmd_vel_pub.publish(cmd_vel);
 
     estimate.linear.x = mu(0);
