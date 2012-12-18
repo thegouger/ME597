@@ -12,9 +12,10 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-#define ENCODERS 1
-#define USE_SIM
-#define LAB2
+#define ENCODERS 1 // Use encoders for velocity (with actual robot)
+#define USE_SIM    // Use simulator
+//#define LAB1
+#define LAB2       // Mapping and planning
 
 #ifdef USE_SIM
 #include <nav_msgs/Odometry.h>
@@ -29,7 +30,7 @@ const float MAX_OUTPUT_SPEED = 2.0f; //1.0 for actual robot
 const float L = 0.283; //0.237; for actual robot
 
 // desired waypoints
-Vector2f waypoints[4]; // 4
+Vector2f waypoints[4]; // 4 waypoints for a box
 
 // Measurements
 Vector3f Y_noiseless;
@@ -39,13 +40,16 @@ Vector3f Y;
 Matrix3f Q( (Matrix3f() << 0.1*0.1, 0,      0,
                               0,      0.1*0.1,  0,
                               0,      0,           0.0824*0.0824).finished() );
+
 Matrix3f R( (Matrix3f() << 0.01*0.01, 0,      0,
                               0,     0.01*0.01,  0,
                               0,     0,          0.03*0.03).finished() );
+
+// globals for velocity and steering angle
 float current_velocity;
 float steer_angle;
 
-// normal random generation
+// normally distributed random generation
 boost::mt19937 rng;
 boost::normal_distribution<double> pos(0.0, 0.10);
 boost::normal_distribution<double> theta(0.0, 0.0824);
@@ -67,7 +71,7 @@ bool   position_acquired = false; // used to determine whether the IPS has given
 double old_time;
 
 #ifdef USE_SIM
-float actual_steering_angle;
+float actual_steering_angle; // get the real steering angle from the link states
 
 void stateCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
@@ -218,14 +222,6 @@ void indoorPosCallback(const indoor_pos::ips_msg::ConstPtr& msg)
 }
 
 void waypointCallback (const geometry_msgs::Twist::ConstPtr& msg) {
-   /*
-   if(msg->linear.x != waypoints[1](0) && msg->linear.y != waypoints[1](1))
-   {
-     waypoints[0](0) = waypoints[1](0);//mu(0);
-     waypoints[0](1) = waypoints[1](1);//mu(1);
-   }
-   */
-
    waypoints[0](0) = mu(0);
    waypoints[0](1) = mu(1);
    waypoints[1](0) = msg->linear.x;
@@ -294,7 +290,7 @@ int main(int argc, char* argv[])
    ros::Subscriber steer_sub = nodeHandle.subscribe("gazebo/link_states", 1, steer_link_callback);
    #endif
    #ifdef LAB2
-   ros::Subscriber waypoint_sub = nodeHandle.subscribe("waypoint",1,waypointCallback);
+   ros::Subscriber waypoint_sub = nodeHandle.subscribe("waypoint",1,waypointCallback);  // get waypoints from planner
    #endif
    #ifdef ENCODERS
    ros::Subscriber encoder_sub = nodeHandle.subscribe("/data/encoders", 1, encoderCallback);
@@ -303,22 +299,20 @@ int main(int argc, char* argv[])
    ros::Rate loop_rate(20); // be sure to use sim time if simulating
 
    // file output
-   // outfile<< "x       y       velocity      desired_vel     vel_output      heading    crosstrack_error   steer_angle\n";
-
    outfile << "timestamp   actual_x   actual_y     actual_t    velocity    x_estimate    y_estimate   t_estimate   x_mes  y_mes  t_mes \n";
+
    while(ros::ok())
    {
       ros::spinOnce();
 
       // haven't gotten a callback yet
-      if(!position_acquired) // current_pos.x == 0.0)
+      if(!position_acquired) 
       {
 	     loop_rate.sleep();
 	     continue;
       }
 
     // PID controller
-
     Vector2f heading_vector(cos(mu(2)), sin(mu(2)));
 
     #ifdef ENCODERS
@@ -339,21 +333,30 @@ int main(int argc, char* argv[])
     cmd_vel.linear.x = vel_output;
 
     // Steering controller
-#ifdef LAB1
+    #ifdef LAB1
     if( (Vector2f() << waypoints[way_state % 4](0) - mu(0), waypoints[way_state % 4](1) - mu(1)).finished().norm() < 0.5)
     {
        //outfile << "Acheived waypoint: " << way_state << "\n";
        ROS_INFO("Acheived waypoint: %d", way_state);
        way_state = way_state % 4 + 1;
     }
-#endif
+    #endif
+
     float x0,y0,x1,y1,x2,y2;
     x0 = mu(0);
     y0 = mu(1);
+
     x1 = waypoints[0](0);//waypoints[way_state - 1](0);
     y1 = waypoints[0](1);//waypoints[way_state - 1](1);
     x2 = waypoints[1](0);//waypoints[way_state % 4](0);
     y2 = waypoints[1](1);//waypoints[way_state % 4](1);
+   
+    #ifdef LAB1
+    x1 = waypoints[way_state - 1](0);
+    y1 = waypoints[way_state - 1](1);
+    x2 = waypoints[way_state % 4](0);
+    y2 = waypoints[way_state % 4](1);
+    #endif
 
     Vector2f path_vector(x2-x1, y2-y1);
     float sign = heading_vector(0)*path_vector(1) - heading_vector(1)*path_vector(0);
@@ -375,9 +378,9 @@ int main(int argc, char* argv[])
       
     cmd_vel.angular.z = steer_angle_normalized;
 
-    cmd_vel.linear.x  = 1.5f; // /= 100.0f;
     // publish results
     #ifdef LAB2
+    cmd_vel.linear.x  = 1.5f;  // keep constant velocity output, PID not necessary for simulator
     if (waypoints[1](1) == 1337 && waypoints[1](0) == 1337 ) {
        cmd_vel.linear.x = 0 ;
        cmd_vel.angular.z = 0.0f; // steer_angle_normalized;
@@ -387,22 +390,13 @@ int main(int argc, char* argv[])
     cmd_vel.angular.z /= 100.0f;
     #endif
 
-    // EKF data
-    cmd_vel.angular.z = 1.0f;
     cmd_vel_pub.publish(cmd_vel);
 
     estimate.linear.x = mu(0);
     estimate.linear.y = mu(1);
     estimate.angular.z = mu(2);
 
-    // publish estimates
-   //  if(Y_noiseless(0) < 900)
-   //  {
-   //    estimate.linear.x = Y_noiseless(0);
-   //    estimate.linear.y = Y_noiseless(1);
-   //    estimate.angular.z = Y_noiseless(2);
-   //  }
-
+    // EKF estimate
     estimate_pub.publish(estimate);
 
     loop_rate.sleep();
